@@ -1,1 +1,1 @@
-com.hazelcast.jet.hadoop.HadoopSourceFactory
+com.hazelcast.jet.hadoop.impl.HadoopSourceFactory

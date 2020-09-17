@@ -18,10 +18,8 @@ package com.hazelcast.jet.pipeline.file;
 
 import com.hazelcast.jet.JetException;
 import com.hazelcast.jet.pipeline.BatchSource;
-import com.hazelcast.jet.pipeline.Sources;
+import com.hazelcast.jet.pipeline.file.impl.LocalFileSourceFactory;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.ServiceLoader;
@@ -40,7 +38,7 @@ import static java.util.Objects.requireNonNull;
  * <p>
  * The format determines how the contents of the file is parsed and
  * also determines the type of the source items. E.g. the
- * {@link LineTextFileFormat} returns each line as a String,
+ * {@link LinesTextFileFormat} returns each line as a String,
  * {@link JsonFileFormat} returns each line of a JSON Lines file
  * deserialized into an instance of a specified class.
  * <p>
@@ -61,7 +59,7 @@ public class FileSourceBuilder<T> {
     private final Map<String, String> options = new HashMap<>();
 
     private String path;
-    private FileFormat<?, ?, T> format;
+    private FileFormat<T> format;
     private boolean useHadoop;
 
     // TODO We should have only single constructor and withFormat(..)
@@ -87,7 +85,7 @@ public class FileSourceBuilder<T> {
      * <p>
      * TODO likely to remove (see discussion above)
      */
-    public FileSourceBuilder(FileFormat<?, ?, T> format) {
+    public FileSourceBuilder(FileFormat<T> format) {
         this.format = requireNonNull(format, "format must not be null");
     }
 
@@ -106,7 +104,7 @@ public class FileSourceBuilder<T> {
      * <li> {@link AvroFileFormat}
      * <li> {@link CsvFileFormat}
      * <li> {@link JsonFileFormat}
-     * <li> {@link LineTextFileFormat}
+     * <li> {@link LinesTextFileFormat}
      * <li> {@link ParquetFileFormat}
      * <li> {@link RawBytesFileFormat}
      * <li> {@link TextFileFormat}
@@ -114,8 +112,8 @@ public class FileSourceBuilder<T> {
      * You may provide a custom format by implementing the
      * {@link FileFormat} interface. See its javadoc for details.
      */
-    public <U> FileSourceBuilder<U> withFormat(FileFormat<?, ?, U> fileFormat) {
-        format = (FileFormat<?, ?, T>) fileFormat;
+    public <U> FileSourceBuilder<U> withFormat(FileFormat<U> fileFormat) {
+        format = (FileFormat<T>) fileFormat;
         return (FileSourceBuilder<U>) this;
     }
 
@@ -160,7 +158,7 @@ public class FileSourceBuilder<T> {
     /**
      * The source format
      */
-    public FileFormat<?, ?, T> format() {
+    public FileFormat<T> format() {
         return format;
     }
 
@@ -187,20 +185,7 @@ public class FileSourceBuilder<T> {
             throw new JetException("No suitable FileSourceFactory found. " +
                     "Do you have Jet's Hadoop module on classpath?");
         } else {
-            Path p = Paths.get(path);
-
-            String directory;
-            String glob = "*";
-            if (p.toFile().isDirectory()) {
-                directory = p.toString();
-            } else {
-                directory = p.getParent().toString();
-                glob = p.getFileName().toString();
-            }
-
-            return Sources.filesBuilder(directory)
-                    .glob(glob)
-                    .build(format.localMapFn());
+            return new LocalFileSourceFactory<T>().create(this);
         }
     }
 }

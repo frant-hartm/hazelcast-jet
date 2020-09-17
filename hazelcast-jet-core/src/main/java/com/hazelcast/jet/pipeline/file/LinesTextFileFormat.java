@@ -21,25 +21,25 @@ import java.nio.charset.Charset;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
- * FileFormat for text files which read whole file as a String item emitted from the source
+ * FileFormat for text files which read each line as a String item emitted from the source
  */
-public class TextFileFormat implements FileFormat<String> {
+public class LinesTextFileFormat implements FileFormat<String> {
 
     private final Charset charset;
 
     /**
-     * Create TextFileFormat with default character encoding (UTF-8)
+     * Create LinesTextFileFormat with default character encoding (UTF-8)
      */
-    public TextFileFormat() {
+    public LinesTextFileFormat() {
         this(UTF_8);
     }
 
     /**
-     * Create TextFileFormat with default character encoding (UTF-8)
+     * Create LinesTextFileFormat with default character encoding (UTF-8)
      *
      * NOTE: This option is supported for local files only, not for files read using the Hadoop connector
      */
-    public TextFileFormat(Charset charset) {
+    public LinesTextFileFormat(Charset charset) {
         this.charset = charset;
     }
 

@@ -32,9 +32,9 @@ import org.apache.hadoop.mapreduce.lib.input.LineRecordReader;
 
 import java.io.IOException;
 
-import static com.hazelcast.jet.pipeline.file.JsonFileFormat.JSON_INPUT_FORMAT_BEAN_CLASS;
-
 public class JsonInputFormat extends FileInputFormat<LongWritable, Object> {
+
+    public static final String JSON_INPUT_FORMAT_BEAN_CLASS = "json.bean.class";
 
     @Override
     public RecordReader<LongWritable, Object> createRecordReader(InputSplit split, TaskAttemptContext context)

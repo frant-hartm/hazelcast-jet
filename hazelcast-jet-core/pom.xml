@@ -146,31 +146,11 @@
         </dependency>
 
         <dependency>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-common</artifactId>
-            <version>${hadoop.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-mapreduce-client-core</artifactId>
-            <version>${hadoop.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
             <groupId>org.apache.avro</groupId>
             <artifactId>avro-mapred</artifactId>
             <version>${avro.version}</version>
             <scope>provided</scope>
         </dependency>
-
-        <dependency>
-            <groupId>org.apache.parquet</groupId>
-            <artifactId>parquet-avro</artifactId>
-            <version>${parquet.version}</version>
-            <scope>provided</scope>
-        </dependency>
-
 
         <!--TEST DEPENDENCIES-->
         <dependency>

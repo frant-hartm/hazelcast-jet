@@ -21,28 +21,40 @@ package com.hazelcast.jet.pipeline.file;
  *
  * TODO not sure if we actually need this? Does it provide value?
  */
-public class FileSources {
+public final class FileSources {
 
+    /**
+     * Helper class
+     */
+    private FileSources() {
+    }
+
+    /**
+     * Helper class to create a {@link FileSourceBuilder}
+     *
+     * Usage:
+     * <pre>{@code
+     * BatchSource<byte[]> source = FileSources.files("path/to/binary/file")
+     *                                         .build();
+     * }</pre>
+     *
+     * @param path
+     * @return
+     */
     public static FileSourceBuilder<byte[]> files(String path) {
         return new FileSourceBuilder<>(path)
                 .withFormat(new RawBytesFileFormat());
     }
 
-    public static FileSourceBuilder<byte[]> s3(String path) {
-        return new FileSourceBuilder<>(path);
-    }
-
-    public static FileSourceBuilder<byte[]> hdfs(String path) {
-        return new FileSourceBuilder<>(path);
-    }
-
-    public static <T> FileSourceBuilder<T> format(FileFormat<Object, Object, T> format) {
+    /**
+     * TODO do we want this?
+     *
+     * @param format
+     * @param <T>
+     * @return
+     */
+    public static <T> FileSourceBuilder<T> format(FileFormat<T> format) {
         return new FileSourceBuilder<>(format);
     }
 
-    /**
-     * Utility class
-     */
-    private FileSources() {
-    }
 }

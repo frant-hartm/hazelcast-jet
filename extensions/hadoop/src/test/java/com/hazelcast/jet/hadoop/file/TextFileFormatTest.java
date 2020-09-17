@@ -18,9 +18,11 @@ package com.hazelcast.jet.hadoop.file;
 
 import com.hazelcast.jet.pipeline.file.FileSourceBuilder;
 import com.hazelcast.jet.pipeline.file.FileSources;
-import com.hazelcast.jet.pipeline.file.LineTextFileFormat;
+import com.hazelcast.jet.pipeline.file.LinesTextFileFormat;
 import com.hazelcast.jet.pipeline.file.TextFileFormat;
 import org.junit.Test;
+
+import java.nio.charset.Charset;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.is;
@@ -55,7 +57,7 @@ public class TextFileFormatTest extends BaseFileFormatTest {
     @Test
     public void readTextFileAsLines() {
         FileSourceBuilder<String> source = FileSources.files("src/test/resources/file.txt")
-                                                      .withFormat(new LineTextFileFormat());
+                                                      .withFormat(new LinesTextFileFormat());
 
         assertItemsInSource(source, "Text contents of", "the file.");
     }
@@ -66,7 +68,7 @@ public class TextFileFormatTest extends BaseFileFormatTest {
         assumeThat(useHadoop, is(false));
 
         FileSourceBuilder<String> source = FileSources.files("src/test/resources/cp1250.txt")
-                                                      .withFormat(new TextFileFormat("Cp1250"));
+                                                      .withFormat(new TextFileFormat(Charset.forName("Cp1250")));
 
         assertItemsInSource(source, "Příliš žluťoučký kůň úpěl ďábelské ódy.");
     }
@@ -74,7 +76,7 @@ public class TextFileFormatTest extends BaseFileFormatTest {
     @Test
     public void shouldReadAllFilesInDirectory() {
         FileSourceBuilder<String> source = FileSources.files("src/test/resources/directory")
-                                                      .withFormat(new TextFileFormat("Cp1250"));
+                                                      .withFormat(new TextFileFormat(Charset.forName("Cp1250")));
 
         assertItemsInSource(source, (collected) -> assertThat(collected).hasSize(2));
     }
