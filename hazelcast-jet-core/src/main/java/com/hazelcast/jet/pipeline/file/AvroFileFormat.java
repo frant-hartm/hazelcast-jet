@@ -45,4 +45,9 @@ public class AvroFileFormat<T> implements FileFormat<T> {
     public Class<T> reflectClass() {
         return reflectClass;
     }
+
+    @Override
+    public String format() {
+        return "avro";
+    }
 }

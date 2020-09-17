@@ -20,4 +20,9 @@ package com.hazelcast.jet.pipeline.file;
  * FileFormat for binary files, which reads whole file as a byte[] item emitted from the source
  */
 public class RawBytesFileFormat implements FileFormat<byte[]> {
+
+    @Override
+    public String format() {
+        return "bin";
+    }
 }

@@ -23,4 +23,8 @@ package com.hazelcast.jet.pipeline.file;
  */
 public interface FileFormat<T> {
 
+    /**
+     * Unique identifier of the file format, e.g. commonly used suffix or a descriptive name
+     */
+    String format();
 }

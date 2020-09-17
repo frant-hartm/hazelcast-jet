@@ -41,4 +41,8 @@ public class JsonFileFormat<T> implements FileFormat<T> {
         return clazz;
     }
 
+    @Override
+    public String format() {
+        return "jsonl";
+    }
 }

@@ -20,7 +20,6 @@ import org.apache.avro.Schema;
 import org.apache.avro.reflect.ReflectData;
 
 import java.io.Serializable;
-import java.util.Objects;
 
 public class User implements Serializable {
 

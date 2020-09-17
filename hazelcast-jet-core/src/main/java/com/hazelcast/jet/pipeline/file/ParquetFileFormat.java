@@ -24,4 +24,9 @@ package com.hazelcast.jet.pipeline.file;
  * @param <T> type of the items emitted from the source
  */
 public class ParquetFileFormat<T> implements FileFormat<T> {
+
+    @Override
+    public String format() {
+        return "parquet";
+    }
 }

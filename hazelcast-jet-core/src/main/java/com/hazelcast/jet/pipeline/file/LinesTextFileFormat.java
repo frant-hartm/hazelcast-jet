@@ -49,4 +49,9 @@ public class LinesTextFileFormat implements FileFormat<String> {
     public Charset charset() {
         return charset;
     }
+
+    @Override
+    public String format() {
+        return "txtl";
+    }
 }

@@ -49,4 +49,9 @@ public class TextFileFormat implements FileFormat<String> {
     public Charset charset() {
         return charset;
     }
+
+    @Override
+    public String format() {
+        return "txt";
+    }
 }

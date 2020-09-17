@@ -20,11 +20,11 @@ import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import com.hazelcast.function.FunctionEx;
+import com.hazelcast.jet.datamodel.Tuple2;
 import com.hazelcast.jet.impl.util.IOUtil;
 import com.hazelcast.jet.json.JsonUtil;
 import com.hazelcast.jet.pipeline.BatchSource;
 import com.hazelcast.jet.pipeline.Sources;
-import com.hazelcast.jet.pipeline.file.AvroFileFormat;
 import com.hazelcast.jet.pipeline.file.CsvFileFormat;
 import com.hazelcast.jet.pipeline.file.FileFormat;
 import com.hazelcast.jet.pipeline.file.FileSourceBuilder;
@@ -35,10 +35,6 @@ import com.hazelcast.jet.pipeline.file.ParquetFileFormat;
 import com.hazelcast.jet.pipeline.file.RawBytesFileFormat;
 import com.hazelcast.jet.pipeline.file.TextFileFormat;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import org.apache.avro.file.DataFileReader;
-import org.apache.avro.io.DatumReader;
-import org.apache.avro.reflect.ReflectDatumReader;
-import org.apache.avro.specific.SpecificDatumReader;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -49,11 +45,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.ServiceLoader;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import static com.hazelcast.jet.datamodel.Tuple2.tuple2;
 import static com.hazelcast.jet.impl.util.Util.uncheckCall;
 import static com.hazelcast.jet.impl.util.Util.uncheckRun;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -65,7 +63,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  */
 public class LocalFileSourceFactory<T> implements FileSourceFactory<T> {
 
-    private Map<Class<? extends FileFormat>, MapFnProvider<? extends FileFormat<?>, ?>> mapFns;
+    private Map<String, MapFnProvider<? extends FileFormat<?>, ?>> mapFns;
 
     /**
      * Default constructor
@@ -73,18 +71,33 @@ public class LocalFileSourceFactory<T> implements FileSourceFactory<T> {
     public LocalFileSourceFactory() {
         mapFns = new HashMap<>();
 
-        mapFns.put(AvroFileFormat.class, new AvroMapFnProvider<>());
-        mapFns.put(CsvFileFormat.class, new CsvMapFnProvider());
-        mapFns.put(JsonFileFormat.class, new JsonMapFnProvider<>());
-        mapFns.put(LinesTextFileFormat.class, new LineMapFnProvider());
-        mapFns.put(ParquetFileFormat.class, new ParquetMapFnProvider());
-        mapFns.put(RawBytesFileFormat.class, new RawBytesMapFnProvider());
-        mapFns.put(TextFileFormat.class, new TextMapFnProvider());
+        mapFns.put("csv", new CsvMapFnProvider());
+        mapFns.put("jsonl", new JsonMapFnProvider<>());
+        mapFns.put("txtl", new LinesMapFnProvider());
+        mapFns.put("parquet", new ParquetMapFnProvider());
+        mapFns.put("bin", new RawBytesMapFnProvider());
+        mapFns.put("txt", new TextMapFnProvider());
+
+        ServiceLoader<MapFnProvider> loader = ServiceLoader.load(MapFnProvider.class);
+        for (MapFnProvider mapFnProvider : loader) {
+            mapFns.put(mapFnProvider.format(), mapFnProvider);
+        }
     }
 
     @Override
     public BatchSource<T> create(FileSourceBuilder<T> builder) {
-        Path p = Paths.get(builder.path());
+        Tuple2<String, String> dirAndGlob = deriveDirectoryAndGlobFromPath(builder.path());
+
+        FileFormat<?> format = builder.format();
+        MapFnProvider<FileFormat<?>, T> mapFnProvider = (MapFnProvider<FileFormat<?>, T>) mapFns.get(format.format());
+        FunctionEx<Path, Stream<T>> mapFn = mapFnProvider.create(format);
+        return Sources.filesBuilder(dirAndGlob.f0())
+                      .glob(dirAndGlob.f1())
+                      .build(mapFn);
+    }
+
+    private Tuple2<String, String> deriveDirectoryAndGlobFromPath(String path) {
+        Path p = Paths.get(path);
 
         String directory;
         String glob = "*";
@@ -106,37 +119,7 @@ public class LocalFileSourceFactory<T> implements FileSourceFactory<T> {
                 directory = p.toString();
             }
         }
-
-        FileFormat<?> format = builder.format();
-        MapFnProvider<FileFormat<?>, T> mapFnProvider = (MapFnProvider<FileFormat<?>, T>) mapFns.get(format.getClass());
-        FunctionEx<Path, Stream<T>> mapFn = mapFnProvider.create(format);
-        return Sources.filesBuilder(directory)
-                      .glob(glob)
-                      .build(mapFn);
-    }
-
-    private interface MapFnProvider<F extends FileFormat<?>, T> {
-
-        FunctionEx<Path, Stream<T>> create(F format);
-
-    }
-
-    private static class AvroMapFnProvider<T> implements MapFnProvider<AvroFileFormat<T>, T> {
-
-        @Override
-        public FunctionEx<Path, Stream<T>> create(AvroFileFormat<T> format) {
-            Class<T> reflectClass = format.reflectClass();
-            return (path) -> {
-                DatumReader<T> datumReader = datumReader(reflectClass);
-                DataFileReader<T> reader = new DataFileReader<>(path.toFile(), datumReader);
-                return StreamSupport.stream(reader.spliterator(), false)
-                                    .onClose(() -> uncheckRun(reader::close));
-            };
-        }
-
-        private static <T> DatumReader<T> datumReader(Class<T> reflectClass) {
-            return reflectClass == null ? new SpecificDatumReader<>() : new ReflectDatumReader<>(reflectClass);
-        }
+        return tuple2(directory, glob);
     }
 
     @SuppressFBWarnings("OBL_UNSATISFIED_OBLIGATION")
@@ -157,14 +140,23 @@ public class LocalFileSourceFactory<T> implements FileSourceFactory<T> {
 
         @Override
         FunctionEx<InputStream, Stream<Object>> mapInputStreamFn(CsvFileFormat<?> format) {
-            CsvSchema schema = CsvSchema.emptySchema().withHeader();
-            CsvMapper mapper = new CsvMapper();
-            ObjectReader reader = mapper.readerFor(format.clazz()).with(schema);
-            return is -> StreamSupport.stream(
-                    Spliterators.spliteratorUnknownSize(
-                            reader.readValues(is),
-                            Spliterator.ORDERED),
-                    false);
+            Class<?> formatClazz = format.clazz(); // Format is not Serializable
+            return is -> {
+                CsvSchema schema = CsvSchema.emptySchema().withHeader();
+                CsvMapper mapper = new CsvMapper();
+                ObjectReader reader = mapper.readerFor(formatClazz).with(schema);
+
+                return StreamSupport.stream(
+                        Spliterators.spliteratorUnknownSize(
+                                reader.readValues(is),
+                                Spliterator.ORDERED),
+                        false);
+            };
+        }
+
+        @Override
+        public String format() {
+            return "csv";
         }
     }
 
@@ -181,9 +173,14 @@ public class LocalFileSourceFactory<T> implements FileSourceFactory<T> {
                              .onClose(() -> uncheckRun(reader::close));
             };
         }
+
+        @Override
+        public String format() {
+            return "jsonl";
+        }
     }
 
-    private static class LineMapFnProvider extends AbstractMapFnProvider<LinesTextFileFormat, String> {
+    private static class LinesMapFnProvider extends AbstractMapFnProvider<LinesTextFileFormat, String> {
 
         @Override FunctionEx<InputStream, Stream<String>> mapInputStreamFn(LinesTextFileFormat format) {
             String thisCharset = format.charset().name();
@@ -192,6 +189,11 @@ public class LocalFileSourceFactory<T> implements FileSourceFactory<T> {
                 return reader.lines()
                              .onClose(() -> uncheckRun(reader::close));
             };
+        }
+
+        @Override
+        public String format() {
+            return "txtl";
         }
     }
 
@@ -203,6 +205,11 @@ public class LocalFileSourceFactory<T> implements FileSourceFactory<T> {
                     " " +
                     "Use Jet Hadoop module with FileSourceBuilder.useHadoopForLocalFiles option instead.");
         }
+
+        @Override
+        public String format() {
+            return "parquet";
+        }
     }
 
     private static class RawBytesMapFnProvider extends AbstractMapFnProvider<RawBytesFileFormat, Object> {
@@ -210,6 +217,11 @@ public class LocalFileSourceFactory<T> implements FileSourceFactory<T> {
         @Override
         FunctionEx<InputStream, Stream<Object>> mapInputStreamFn(RawBytesFileFormat format) {
             return is -> Stream.of(IOUtil.readFully(is));
+        }
+
+        @Override
+        public String format() {
+            return "bin";
         }
     }
 
@@ -219,6 +231,11 @@ public class LocalFileSourceFactory<T> implements FileSourceFactory<T> {
         FunctionEx<InputStream, Stream<Object>> mapInputStreamFn(TextFileFormat format) {
             String thisCharset = format.charset().name();
             return is -> Stream.of(new String(IOUtil.readFully(is), Charset.forName(thisCharset)));
+        }
+
+        @Override
+        public String format() {
+            return "txt";
         }
     }
 }

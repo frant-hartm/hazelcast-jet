@@ -39,6 +39,7 @@ public class CsvFileFormat<T> implements FileFormat<T> {
         this.clazz = requireNonNull(clazz, "clazz must not be null");
     }
 
+
     /**
      * Class to deserialize into
      */
@@ -46,4 +47,8 @@ public class CsvFileFormat<T> implements FileFormat<T> {
         return clazz;
     }
 
+    @Override
+    public String format() {
+        return "csv";
+    }
 }
