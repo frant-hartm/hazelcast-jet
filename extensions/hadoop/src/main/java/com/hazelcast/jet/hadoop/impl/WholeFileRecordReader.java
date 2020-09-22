@@ -16,8 +16,6 @@
 
 package com.hazelcast.jet.hadoop.impl;
 
-import java.io.IOException;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
@@ -30,26 +28,27 @@ import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 
+import java.io.IOException;
+
 /**
  * From
  * https://github.com/tomwhite/hadoop-book/blob/master/ch08-mr-types/src/main/java/WholeFileRecordReader.java
  */
 class WholeFileRecordReader extends RecordReader<NullWritable, BytesWritable> {
 
+    private final BytesWritable value = new BytesWritable();
     private FileSplit fileSplit;
     private Configuration conf;
-    private BytesWritable value = new BytesWritable();
     private boolean processed;
 
     @Override
-    public void initialize(InputSplit split, TaskAttemptContext context)
-            throws IOException, InterruptedException {
+    public void initialize(InputSplit split, TaskAttemptContext context) {
         this.fileSplit = (FileSplit) split;
         this.conf = context.getConfiguration();
     }
 
     @Override
-    public boolean nextKeyValue() throws IOException, InterruptedException {
+    public boolean nextKeyValue() throws IOException {
         if (!processed) {
             byte[] contents = new byte[(int) fileSplit.getLength()];
             Path file = fileSplit.getPath();
@@ -69,23 +68,21 @@ class WholeFileRecordReader extends RecordReader<NullWritable, BytesWritable> {
     }
 
     @Override
-    public NullWritable getCurrentKey() throws IOException, InterruptedException {
+    public NullWritable getCurrentKey() {
         return NullWritable.get();
     }
 
     @Override
-    public BytesWritable getCurrentValue() throws IOException,
-            InterruptedException {
+    public BytesWritable getCurrentValue() {
         return value;
     }
 
     @Override
-    public float getProgress() throws IOException {
+    public float getProgress() {
         return processed ? 1.0f : 0.0f;
     }
 
     @Override
-    public void close() throws IOException {
-        // do nothing
+    public void close() {
     }
 }

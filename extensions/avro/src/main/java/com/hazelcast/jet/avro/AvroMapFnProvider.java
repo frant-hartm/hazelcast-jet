@@ -31,7 +31,8 @@ import java.util.stream.StreamSupport;
 import static com.hazelcast.jet.impl.util.Util.uncheckRun;
 
 /**
- * MapFnProvider for Avro files, reading given path and deserializing using avro DatumReader
+ * MapFnProvider for Avro files, reading given path and deserializing using
+ * avro DatumReader
  *
  * @param <T> type of the item emitted from the source
  */

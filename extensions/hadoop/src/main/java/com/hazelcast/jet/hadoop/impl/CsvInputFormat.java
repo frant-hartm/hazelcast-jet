@@ -39,8 +39,7 @@ public class CsvInputFormat extends FileInputFormat<NullWritable, Object> {
     public static final String CSV_INPUT_FORMAT_BEAN_CLASS = "csv.bean.class";
 
     @Override
-    public RecordReader<NullWritable, Object> createRecordReader(InputSplit split, TaskAttemptContext context)
-            throws IOException, InterruptedException {
+    public RecordReader<NullWritable, Object> createRecordReader(InputSplit split, TaskAttemptContext context) {
 
         return new RecordReader<NullWritable, Object>() {
 
@@ -48,8 +47,7 @@ public class CsvInputFormat extends FileInputFormat<NullWritable, Object> {
             private MappingIterator<Object> iterator;
 
             @Override
-            public void initialize(InputSplit split, TaskAttemptContext context)
-                    throws IOException, InterruptedException {
+            public void initialize(InputSplit split, TaskAttemptContext context) throws IOException {
 
                 FileSplit fileSplit = (FileSplit) split;
                 Configuration conf = context.getConfiguration();
@@ -75,27 +73,26 @@ public class CsvInputFormat extends FileInputFormat<NullWritable, Object> {
             }
 
             @Override
-            public boolean nextKeyValue() throws IOException, InterruptedException {
-                if (iterator.hasNext()) {
-                    current = iterator.next();
-                    return true;
-                } else {
+            public boolean nextKeyValue() {
+                if (!iterator.hasNext()) {
                     return false;
                 }
+                current = iterator.next();
+                return true;
             }
 
             @Override
-            public NullWritable getCurrentKey() throws IOException, InterruptedException {
+            public NullWritable getCurrentKey() {
                 return NullWritable.get();
             }
 
             @Override
-            public Object getCurrentValue() throws IOException, InterruptedException {
+            public Object getCurrentValue() {
                 return current;
             }
 
             @Override
-            public float getProgress() throws IOException, InterruptedException {
+            public float getProgress() {
                 return 0;
             }
 

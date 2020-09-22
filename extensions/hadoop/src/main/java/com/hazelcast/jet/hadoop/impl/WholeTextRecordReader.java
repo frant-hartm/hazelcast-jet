@@ -33,25 +33,24 @@ import java.io.IOException;
 /**
  * From
  * https://github.com/tomwhite/hadoop-book/blob/master/ch08-mr-types/src/main/java/WholeFileRecordReader.java
- *
+ * <p>
  * TODO check license
  */
 class WholeTextRecordReader extends RecordReader<NullWritable, Text> {
 
+    private final Text value = new Text();
     private FileSplit fileSplit;
     private Configuration conf;
-    private Text value = new Text();
     private boolean processed;
 
     @Override
-    public void initialize(InputSplit split, TaskAttemptContext context)
-            throws IOException, InterruptedException {
+    public void initialize(InputSplit split, TaskAttemptContext context) {
         this.fileSplit = (FileSplit) split;
         this.conf = context.getConfiguration();
     }
 
     @Override
-    public boolean nextKeyValue() throws IOException, InterruptedException {
+    public boolean nextKeyValue() throws IOException {
         if (!processed) {
             byte[] contents = new byte[(int) fileSplit.getLength()];
             Path file = fileSplit.getPath();
@@ -71,23 +70,21 @@ class WholeTextRecordReader extends RecordReader<NullWritable, Text> {
     }
 
     @Override
-    public NullWritable getCurrentKey() throws IOException, InterruptedException {
+    public NullWritable getCurrentKey() {
         return NullWritable.get();
     }
 
     @Override
-    public Text getCurrentValue() throws IOException,
-            InterruptedException {
+    public Text getCurrentValue() {
         return value;
     }
 
     @Override
-    public float getProgress() throws IOException {
+    public float getProgress() {
         return processed ? 1.0f : 0.0f;
     }
 
     @Override
-    public void close() throws IOException {
-        // do nothing
+    public void close() {
     }
 }

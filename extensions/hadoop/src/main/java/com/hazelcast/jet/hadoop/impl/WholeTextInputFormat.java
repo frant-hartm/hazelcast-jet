@@ -34,8 +34,7 @@ import java.io.IOException;
  *
  * TODO check license
  */
-public class WholeTextInputFormat
-        extends FileInputFormat<NullWritable, Text> {
+public class WholeTextInputFormat extends FileInputFormat<NullWritable, Text> {
 
     @Override
     protected boolean isSplitable(JobContext context, Path file) {
@@ -43,9 +42,7 @@ public class WholeTextInputFormat
     }
 
     @Override
-    public RecordReader<NullWritable, Text> createRecordReader(
-            InputSplit split, TaskAttemptContext context) throws IOException,
-            InterruptedException {
+    public RecordReader<NullWritable, Text> createRecordReader(InputSplit split, TaskAttemptContext context) {
         WholeTextRecordReader reader = new WholeTextRecordReader();
         reader.initialize(split, context);
         return reader;

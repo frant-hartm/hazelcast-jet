@@ -37,8 +37,7 @@ public class JsonInputFormat extends FileInputFormat<LongWritable, Object> {
     public static final String JSON_INPUT_FORMAT_BEAN_CLASS = "json.bean.class";
 
     @Override
-    public RecordReader<LongWritable, Object> createRecordReader(InputSplit split, TaskAttemptContext context)
-            throws IOException, InterruptedException {
+    public RecordReader<LongWritable, Object> createRecordReader(InputSplit split, TaskAttemptContext context) {
 
         try {
             Configuration configuration = context.getConfiguration();
@@ -50,30 +49,27 @@ public class JsonInputFormat extends FileInputFormat<LongWritable, Object> {
                 final LineRecordReader reader = new LineRecordReader();
 
                 @Override
-                public void initialize(
-                        InputSplit split, TaskAttemptContext context
-                ) throws IOException, InterruptedException {
-
+                public void initialize(InputSplit split, TaskAttemptContext context) throws IOException {
                     reader.initialize(split, context);
                 }
 
                 @Override
-                public boolean nextKeyValue() throws IOException, InterruptedException {
+                public boolean nextKeyValue() throws IOException {
                     return reader.nextKeyValue();
                 }
 
                 @Override
-                public LongWritable getCurrentKey() throws IOException, InterruptedException {
+                public LongWritable getCurrentKey() {
                     return reader.getCurrentKey();
                 }
 
                 @Override
-                public Object getCurrentValue() throws IOException, InterruptedException {
+                public Object getCurrentValue() throws IOException {
                     return JsonUtil.beanFrom(reader.getCurrentValue().toString(), clazz);
                 }
 
                 @Override
-                public float getProgress() throws IOException, InterruptedException {
+                public float getProgress() throws IOException {
                     return reader.getProgress();
                 }
 

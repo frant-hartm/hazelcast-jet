@@ -84,9 +84,10 @@ public class HadoopSourceFactory<T> implements FileSourceFactory<T> {
             Job job = Job.getInstance();
             FileInputFormat.addInputPath(job, new Path(builder.path()));
 
+            FileFormat<T> fileFormat = builder.format();
             JobConfigurer<FileFormat, BiFunctionEx<?, ?, T>> configurer =
-                    (JobConfigurer<FileFormat, BiFunctionEx<?, ?, T>>) configs.get(builder.format().getClass());
-            configurer.configure(job, builder.format());
+                    (JobConfigurer<FileFormat, BiFunctionEx<?, ?, T>>) configs.get(fileFormat.getClass());
+            configurer.configure(job, fileFormat);
 
             Configuration configuration = job.getConfiguration();
             return HadoopSources.inputFormat(configuration, configurer.projectionFn());
