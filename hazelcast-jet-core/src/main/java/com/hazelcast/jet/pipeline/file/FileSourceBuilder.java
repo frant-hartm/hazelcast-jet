@@ -20,7 +20,10 @@ import com.hazelcast.jet.JetException;
 import com.hazelcast.jet.pipeline.BatchSource;
 import com.hazelcast.jet.pipeline.file.impl.LocalFileSourceFactory;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
 
@@ -56,17 +59,28 @@ import static java.util.Objects.requireNonNull;
  */
 public class FileSourceBuilder<T> {
 
+    private static final List<String> HADOOP_PREFIXES;
+
+    static {
+        ArrayList<String> list = new ArrayList<>();
+        // Amazon S3
+        list.add("s3a://");
+        // HDFS
+        list.add("hdfs://");
+        // Azure Cloud Storage
+        list.add("wasbs://");
+        // Azure Data LAke
+        list.add("adl://");
+        // Google Cloud Storage
+        list.add("gs://");
+        HADOOP_PREFIXES = Collections.unmodifiableList(list);
+    }
+
     private final Map<String, String> options = new HashMap<>();
 
-    private String path;
+    private final String path;
     private FileFormat<T> format;
     private boolean useHadoop;
-
-    // TODO We should have only single constructor and withFormat(..)
-    // Our current filesystem takes path as constructor parameter
-    // It is also what makes sense to me (Frantisek) - first define location then other options - especially format
-    // But Spark defines format first and then calls load from a location
-    // Hadoop also has path as a parameter of FileInputFormat
 
     /**
      * Create a new builder with given path.
@@ -78,23 +92,6 @@ public class FileSourceBuilder<T> {
      */
     public FileSourceBuilder(String path) {
         this.path = requireNonNull(path, "path must not be null");
-    }
-
-    /**
-     * Create a new builder with given file format.
-     * <p>
-     * TODO likely to remove (see discussion above)
-     */
-    public FileSourceBuilder(FileFormat<T> format) {
-        this.format = requireNonNull(format, "format must not be null");
-    }
-
-    /**
-     * TODO likely to remove (see discussion above)
-     */
-    public FileSourceBuilder<T> withPath(String path) {
-        this.path = path;
-        return this;
     }
 
     /**
@@ -112,9 +109,11 @@ public class FileSourceBuilder<T> {
      * You may provide a custom format by implementing the
      * {@link FileFormat} interface. See its javadoc for details.
      */
-    public <U> FileSourceBuilder<U> withFormat(FileFormat<U> fileFormat) {
-        format = (FileFormat<T>) fileFormat;
-        return (FileSourceBuilder<U>) this;
+    public <T_NEW> FileSourceBuilder<T_NEW> withFormat(FileFormat<T_NEW> fileFormat) {
+        @SuppressWarnings("unchecked")
+        FileSourceBuilder<T_NEW> newTHis = (FileSourceBuilder<T_NEW>) this;
+        newTHis.format = fileFormat;
+        return newTHis;
     }
 
     /**
@@ -173,9 +172,7 @@ public class FileSourceBuilder<T> {
             throw new IllegalStateException("Parameter 'format' is required");
         }
 
-        if (useHadoop || path.startsWith("s3a://") ||
-                path.startsWith("hdfs://")) {
-            // TODO add others which we can get working reliably
+        if (useHadoop || hasHadoopPrefix()) {
 
             ServiceLoader<FileSourceFactory> loader = ServiceLoader.load(FileSourceFactory.class);
             for (FileSourceFactory<T> fileSourceFactory : loader) {
@@ -184,8 +181,13 @@ public class FileSourceBuilder<T> {
 
             throw new JetException("No suitable FileSourceFactory found. " +
                     "Do you have Jet's Hadoop module on classpath?");
-        } else {
-            return new LocalFileSourceFactory<T>().create(this);
         }
+        
+        return new LocalFileSourceFactory<T>().create(this);
+    }
+
+    private boolean hasHadoopPrefix() {
+        long count = HADOOP_PREFIXES.stream().filter(path::startsWith).count();
+        return count > 0;
     }
 }

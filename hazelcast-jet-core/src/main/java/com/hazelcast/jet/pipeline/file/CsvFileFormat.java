@@ -28,10 +28,9 @@ public class CsvFileFormat<T> implements FileFormat<T> {
     private final Class<T> clazz;
 
     /**
-     * Create a CsvFileFormat
-     * <p>
-     * Items will be deserialized into an instance of given class. The first line of the CSV (header)
-     * will be used to infer the column names to map to the fields.
+     * Items will be deserialized into an instance of given class. The first
+     * line of the CSV (header) will be used to infer the column names to map
+     * to the fields.
      *
      * @param clazz class to deserialize into
      */
