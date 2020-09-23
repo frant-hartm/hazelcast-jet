@@ -182,7 +182,7 @@ public class FileSourceBuilder<T> {
             throw new JetException("No suitable FileSourceFactory found. " +
                     "Do you have Jet's Hadoop module on classpath?");
         }
-        
+
         return new LocalFileSourceFactory<T>().create(this);
     }
 
