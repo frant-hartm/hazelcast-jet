@@ -18,7 +18,7 @@ package com.hazelcast.jet.pipeline.file;
 
 /**
  * Convenience methods to FileSourceBuilder
- *
+ * <p>
  * TODO not sure if we actually need this? Does it provide value?
  */
 public final class FileSources {
@@ -31,7 +31,7 @@ public final class FileSources {
 
     /**
      * Helper class to create a {@link FileSourceBuilder}
-     *
+     * <p>
      * Usage:
      * <pre>{@code
      * BatchSource<byte[]> source = FileSources.files("path/to/binary/file")
@@ -45,16 +45,4 @@ public final class FileSources {
         return new FileSourceBuilder<>(path)
                 .withFormat(new RawBytesFileFormat());
     }
-
-    /**
-     * TODO do we want this?
-     *
-     * @param format
-     * @param <T>
-     * @return
-     */
-    public static <T> FileSourceBuilder<T> format(FileFormat<T> format) {
-        return new FileSourceBuilder<>(format);
-    }
-
 }
