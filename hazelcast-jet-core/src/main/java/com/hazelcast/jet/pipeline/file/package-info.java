@@ -15,7 +15,7 @@
  */
 
 /**
- *
+ * The API in this package is a preview.
  */
 @EvolvingApi
 package com.hazelcast.jet.pipeline.file;

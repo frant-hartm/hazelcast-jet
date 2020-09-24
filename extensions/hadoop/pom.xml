@@ -32,6 +32,9 @@
         <version>4.3-SNAPSHOT</version>
     </parent>
 
+    <properties>
+        <hadoop.scope>provided</hadoop.scope>
+    </properties>
     <build>
         <plugins>
             <plugin>
@@ -83,6 +86,8 @@
                         <createSourcesJar>true</createSourcesJar>
                         <shadeSourcesContent>true</shadeSourcesContent>
                         <createDependencyReducedPom>true</createDependencyReducedPom>
+                        <shadedArtifactAttached>true</shadedArtifactAttached>
+                        <shadedClassifierName>with-${hadoop.version}</shadedClassifierName>
 
                         <!--
                         We actually don't shade these in here in Hadoop module, they are already part of core
@@ -117,31 +122,31 @@
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-hdfs</artifactId>
             <version>${hadoop.version}</version>
-            <scope>provided</scope>
+            <scope>${hadoop.scope}</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-common</artifactId>
             <version>${hadoop.version}</version>
-            <scope>provided</scope>
+            <scope>${hadoop.scope}</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-mapreduce-client-core</artifactId>
             <version>${hadoop.version}</version>
-            <scope>provided</scope>
+            <scope>${hadoop.scope}</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.avro</groupId>
             <artifactId>avro</artifactId>
             <version>${avro.version}</version>
-            <scope>provided</scope>
+            <scope>${hadoop.scope}</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.avro</groupId>
             <artifactId>avro-mapred</artifactId>
             <version>${avro.version}</version>
-            <scope>provided</scope>
+            <scope>${hadoop.scope}</scope>
         </dependency>
 
         <!-- TODO this module has lot's of duplicated classes? maybe it's not needed/or some slimmer module is enough? -->
@@ -149,11 +154,13 @@
             <groupId>org.apache.parquet</groupId>
             <artifactId>parquet-hadoop-bundle</artifactId>
             <version>${parquet.version}</version>
+            <scope>${hadoop.scope}</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.parquet</groupId>
             <artifactId>parquet-avro</artifactId>
             <version>${parquet.version}</version>
+            <scope>${hadoop.scope}</scope>
         </dependency>
 
         <!-- Hadoop brings in jackson 2.8, our jackson support expects 2.10 if present at all -->
@@ -161,6 +168,7 @@
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <version>${jackson.jr.version}</version>
+            <scope>${hadoop.scope}</scope>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
@@ -179,8 +187,11 @@
 
     <profiles>
         <profile>
-            <id>with-3.2</id>
-            <!-- 3.2 is the default-->
+            <id>with-2.10</id>
+            <properties>
+                <!-- hadoop.version=2.10. is the default-->
+                <hadoop.scope>compile</hadoop.scope>
+            </properties>
             <build>
                 <plugins>
                     <plugin>
@@ -191,9 +202,10 @@
             </build>
         </profile>
         <profile>
-            <id>with-2.10</id>
+            <id>with-3.2</id>
             <properties>
-                <hadoop.version>2.10.0</hadoop.version>
+                <hadoop.version>3.2.1</hadoop.version>
+                <hadoop.scope>compile</hadoop.scope>
             </properties>
             <build>
                 <plugins>

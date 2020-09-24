@@ -25,6 +25,11 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  */
 public class LinesTextFileFormat implements FileFormat<String> {
 
+    /**
+     * Format id for text file as lines
+     */
+    public static final String FORMAT_LINES = "lines";
+
     private final Charset charset;
 
     /**
@@ -52,6 +57,6 @@ public class LinesTextFileFormat implements FileFormat<String> {
 
     @Override
     public String format() {
-        return "txtl";
+        return FORMAT_LINES;
     }
 }

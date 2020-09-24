@@ -71,17 +71,21 @@ public class LocalFileSourceFactory<T> implements FileSourceFactory<T> {
     public LocalFileSourceFactory() {
         mapFns = new HashMap<>();
 
-        mapFns.put("csv", new CsvMapFnProvider());
-        mapFns.put("jsonl", new JsonMapFnProvider<>());
-        mapFns.put("txtl", new LinesMapFnProvider());
-        mapFns.put("parquet", new ParquetMapFnProvider());
-        mapFns.put("bin", new RawBytesMapFnProvider());
-        mapFns.put("txt", new TextMapFnProvider());
+        addMapFnProvider(new CsvMapFnProvider());
+        addMapFnProvider(new JsonMapFnProvider<>());
+        addMapFnProvider(new LinesMapFnProvider());
+        addMapFnProvider(new ParquetMapFnProvider());
+        addMapFnProvider(new RawBytesMapFnProvider());
+        addMapFnProvider(new TextMapFnProvider());
 
         ServiceLoader<MapFnProvider> loader = ServiceLoader.load(MapFnProvider.class);
         for (MapFnProvider mapFnProvider : loader) {
-            mapFns.put(mapFnProvider.format(), mapFnProvider);
+            addMapFnProvider(mapFnProvider);
         }
+    }
+
+    private void addMapFnProvider(MapFnProvider<? extends FileFormat<?>, ?> provider) {
+        mapFns.put(provider.format(), provider);
     }
 
     @Override
@@ -156,7 +160,7 @@ public class LocalFileSourceFactory<T> implements FileSourceFactory<T> {
 
         @Override
         public String format() {
-            return "csv";
+            return CsvFileFormat.FORMAT_CSV;
         }
     }
 
@@ -176,7 +180,7 @@ public class LocalFileSourceFactory<T> implements FileSourceFactory<T> {
 
         @Override
         public String format() {
-            return "jsonl";
+            return JsonFileFormat.FORMAT_JSONL;
         }
     }
 
@@ -193,7 +197,7 @@ public class LocalFileSourceFactory<T> implements FileSourceFactory<T> {
 
         @Override
         public String format() {
-            return "txtl";
+            return LinesTextFileFormat.FORMAT_LINES;
         }
     }
 
@@ -208,7 +212,7 @@ public class LocalFileSourceFactory<T> implements FileSourceFactory<T> {
 
         @Override
         public String format() {
-            return "parquet";
+            return ParquetFileFormat.FORMAT_PARQUET;
         }
     }
 
@@ -221,7 +225,7 @@ public class LocalFileSourceFactory<T> implements FileSourceFactory<T> {
 
         @Override
         public String format() {
-            return "bin";
+            return RawBytesFileFormat.FORMAT_BIN;
         }
     }
 
@@ -235,7 +239,7 @@ public class LocalFileSourceFactory<T> implements FileSourceFactory<T> {
 
         @Override
         public String format() {
-            return "txt";
+            return TextFileFormat.FORMAT_TXT;
         }
     }
 }

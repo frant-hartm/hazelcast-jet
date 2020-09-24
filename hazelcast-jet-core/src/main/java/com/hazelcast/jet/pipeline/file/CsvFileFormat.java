@@ -25,6 +25,11 @@ import static java.util.Objects.requireNonNull;
  */
 public class CsvFileFormat<T> implements FileFormat<T> {
 
+    /**
+     * Format id for CSV
+     */
+    public static final String FORMAT_CSV = "csv";
+
     private final Class<T> clazz;
 
     /**
@@ -48,6 +53,6 @@ public class CsvFileFormat<T> implements FileFormat<T> {
 
     @Override
     public String format() {
-        return "csv";
+        return FORMAT_CSV;
     }
 }

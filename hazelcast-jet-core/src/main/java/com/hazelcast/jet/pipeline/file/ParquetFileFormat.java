@@ -25,8 +25,13 @@ package com.hazelcast.jet.pipeline.file;
  */
 public class ParquetFileFormat<T> implements FileFormat<T> {
 
+    /**
+     * Format id for Parquet
+     */
+    public static final String FORMAT_PARQUET = "parquet";
+
     @Override
     public String format() {
-        return "parquet";
+        return FORMAT_PARQUET;
     }
 }

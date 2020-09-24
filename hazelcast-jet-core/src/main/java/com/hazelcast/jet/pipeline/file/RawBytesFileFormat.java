@@ -21,8 +21,13 @@ package com.hazelcast.jet.pipeline.file;
  */
 public class RawBytesFileFormat implements FileFormat<byte[]> {
 
+    /**
+     * Format id for raw binary data
+     */
+    public static final String FORMAT_BIN = "bin";
+
     @Override
     public String format() {
-        return "bin";
+        return FORMAT_BIN;
     }
 }

@@ -25,6 +25,11 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  */
 public class TextFileFormat implements FileFormat<String> {
 
+    /**
+     * Format id for text files
+     */
+    public static final String FORMAT_TXT = "txt";
+
     private final Charset charset;
 
     /**
@@ -52,6 +57,6 @@ public class TextFileFormat implements FileFormat<String> {
 
     @Override
     public String format() {
-        return "txt";
+        return FORMAT_TXT;
     }
 }

@@ -23,6 +23,11 @@ package com.hazelcast.jet.pipeline.file;
  */
 public class JsonFileFormat<T> implements FileFormat<T> {
 
+    /**
+     * Format id for JSON Lines
+     */
+    public static final String FORMAT_JSONL = "jsonl";
+
     private final Class<T> clazz;
 
     /**
@@ -43,6 +48,6 @@ public class JsonFileFormat<T> implements FileFormat<T> {
 
     @Override
     public String format() {
-        return "jsonl";
+        return FORMAT_JSONL;
     }
 }

@@ -23,6 +23,11 @@ package com.hazelcast.jet.pipeline.file;
  */
 public class AvroFileFormat<T> implements FileFormat<T> {
 
+    /**
+     * Format id for Avro
+     */
+    public static final String FORMAT_AVRO = "avro";
+
     private Class<T> reflectClass;
 
     /**
@@ -48,6 +53,6 @@ public class AvroFileFormat<T> implements FileFormat<T> {
 
     @Override
     public String format() {
-        return "avro";
+        return FORMAT_AVRO;
     }
 }

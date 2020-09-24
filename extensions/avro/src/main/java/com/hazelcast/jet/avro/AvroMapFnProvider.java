@@ -55,6 +55,6 @@ public class AvroMapFnProvider<T> implements MapFnProvider<AvroFileFormat<T>, T>
 
     @Override
     public String format() {
-        return "avro";
+        return AvroFileFormat.FORMAT_AVRO;
     }
 }
