@@ -16,16 +16,12 @@
 
 package com.hazelcast.jet.hadoop.file.model;
 
-import org.apache.avro.Schema;
 import org.apache.avro.reflect.AvroName;
-import org.apache.avro.reflect.ReflectData;
 
 import java.io.Serializable;
 import java.util.Objects;
 
 public class User implements Serializable {
-
-    public static final Schema SCHEMA = ReflectData.get().getSchema(User.class);
 
     private String name;
 
@@ -62,10 +58,6 @@ public class User implements Serializable {
                 "name='" + name + '\'' +
                 ", favoriteNumber=" + favoriteNumber +
                 '}';
-    }
-
-    public static Schema classSchema() {
-        return SCHEMA;
     }
 
     @Override public boolean equals(Object o) {
