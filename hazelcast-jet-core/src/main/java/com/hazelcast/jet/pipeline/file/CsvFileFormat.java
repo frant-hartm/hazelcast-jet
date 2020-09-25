@@ -33,9 +33,9 @@ public class CsvFileFormat<T> implements FileFormat<T> {
     private final Class<T> clazz;
 
     /**
-     * Items will be deserialized into an instance of given class. The first
-     * line of the CSV (header) will be used to infer the column names to map
-     * to the fields.
+     * Jet will deserialize the items into an instance of the given class.
+     * It will use the first line of the CSV (header) to infer the column names
+     * to map to the fields.
      *
      * @param clazz class to deserialize into
      */

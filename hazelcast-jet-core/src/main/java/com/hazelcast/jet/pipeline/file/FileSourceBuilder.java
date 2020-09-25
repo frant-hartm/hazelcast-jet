@@ -20,30 +20,33 @@ import com.hazelcast.jet.JetException;
 import com.hazelcast.jet.pipeline.BatchSource;
 import com.hazelcast.jet.pipeline.file.impl.LocalFileSourceFactory;
 
-import java.util.ArrayList;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
 
+import static java.util.Arrays.asList;
 import static java.util.Objects.requireNonNull;
 
 /**
- * Builder for file sources
+ * A unified builder object for various kinds of file sources. It works
+ * with the local filesystem and several distributed filesystems
+ * supported through the Hadoop API.
  * <p>
- * The builder works with local filesystem and with hadoop supported
- * filesystems.
+ * The builder requires two parameters: {@code path} and {@code format},
+ * and creates a {@link BatchSource}. The path specifies the filesystem
+ * type (examples: {@code s3a://}, {@code hdfs://}) and the path to the
+ * file.
  * <p>
- * The builder requires 'path' and 'format' parameters and creates a
- * {@link BatchSource}. The path specifies the location of the file(s)
- * and possibly the data source - s3a://, hdfs://, etc..
- * <p>
- * The format determines how the contents of the file is parsed and
- * also determines the type of the source items. E.g. the
- * {@link LinesTextFileFormat} returns each line as a String,
- * {@link JsonFileFormat} returns each line of a JSON Lines file
- * deserialized into an instance of a specified class.
+ * The format determines how Jet will map the contents of the file to the
+ * objects coming out of the corresponding pipeline source. This involves
+ * two major concerns: parsing and deserialization. For example, {@link
+ * LinesTextFileFormat} parses the file into lines of text and emits a
+ * simple string for each line; {@link JsonFileFormat} parses a JSON Lines
+ * file and emits instances of the class you specify.
  * <p>
  * You may also use Hadoop to read local files by specifying the
  * {@link #useHadoopForLocalFiles()} flag.
@@ -62,18 +65,13 @@ public class FileSourceBuilder<T> {
     private static final List<String> HADOOP_PREFIXES;
 
     static {
-        ArrayList<String> list = new ArrayList<>();
-        // Amazon S3
-        list.add("s3a://");
-        // HDFS
-        list.add("hdfs://");
-        // Azure Cloud Storage
-        list.add("wasbs://");
-        // Azure Data LAke
-        list.add("adl://");
-        // Google Cloud Storage
-        list.add("gs://");
-        HADOOP_PREFIXES = Collections.unmodifiableList(list);
+        HADOOP_PREFIXES = Collections.unmodifiableList(asList(
+                "s3a://",   // Amazon S3
+                "hdfs://",  // HDFS
+                "wasbs://", // Azure Cloud Storage
+                "adl://",   // Azure Data Lake
+                "gs://"     // Google Cloud Storage
+        ));
     }
 
     private final Map<String, String> options = new HashMap<>();
@@ -83,21 +81,19 @@ public class FileSourceBuilder<T> {
     private boolean useHadoop;
 
     /**
-     * Create a new builder with given path.
-     * <p>
-     * Path can point to a file, a directory or contain a glob
-     * (e.g. 'file*' capturing file1, file2, ...).
+     * Creates a new file source builder with the given path. It can point
+     * to a file, a directory or contain a glob (e.g. {@code "file*"},
+     * capturing {@code file1.txt}, {@code file2.txt}, ...).
      *
-     * @param path path
+     * @param path the path to the file
      */
-    public FileSourceBuilder(String path) {
+    public FileSourceBuilder(@Nonnull String path) {
         this.path = requireNonNull(path, "path must not be null");
     }
 
     /**
-     * Set the file format for the source
-     * <p>
-     * Currently supported file formats are:
+     * Set the file format for the source. Currently supported file formats are:
+     * <ul>
      * <li> {@link AvroFileFormat}
      * <li> {@link CsvFileFormat}
      * <li> {@link JsonFileFormat}
@@ -105,34 +101,35 @@ public class FileSourceBuilder<T> {
      * <li> {@link ParquetFileFormat}
      * <li> {@link RawBytesFileFormat}
      * <li> {@link TextFileFormat}
-     * <p>
-     * You may provide a custom format by implementing the
-     * {@link FileFormat} interface. See its javadoc for details.
+     * </ul>
+     * You may provide a custom format by implementing the {@link FileFormat}
+     * interface. See its javadoc for details.
      */
-    public <T_NEW> FileSourceBuilder<T_NEW> withFormat(FileFormat<T_NEW> fileFormat) {
+    @Nonnull
+    public <T_NEW> FileSourceBuilder<T_NEW> withFormat(@Nonnull FileFormat<T_NEW> fileFormat) {
         @SuppressWarnings("unchecked")
-        FileSourceBuilder<T_NEW> newTHis = (FileSourceBuilder<T_NEW>) this;
-        newTHis.format = fileFormat;
-        return newTHis;
+        FileSourceBuilder<T_NEW> newThis = (FileSourceBuilder<T_NEW>) this;
+        newThis.format = fileFormat;
+        return newThis;
     }
 
     /**
-     * Use hadoop for files from local filesystem
-     * <p>
-     * Using Hadoop may be advantageous when working with small number
-     * of large files (smaller than total parallelism), because of
-     * better parallelization.
+     * Specifies to use Hadoop for files from local filesystem. One advantage
+     * of Hadoop is that it can provide better parallelization when the number
+     * of files is smaller than the total parallelism of the pipeline source.
      */
+    @Nonnull
     public FileSourceBuilder<T> useHadoopForLocalFiles() {
         useHadoop = true;
         return this;
     }
 
     /**
-     * Specify an option for the underlying source
-     * <p>
-     * NOTE: Format related options are set on the FileFormat directly.
+     * Specifies an arbitrary option for the underlying source. If you are
+     * looking for a missing option, check out the {@link FileFormat} class
+     * you're using, it offers parsing-related options.
      */
+    @Nonnull
     public FileSourceBuilder<T> withOption(String key, String value) {
         requireNonNull(key, "key must not be null");
         requireNonNull(value, "value must not be null");
@@ -141,29 +138,33 @@ public class FileSourceBuilder<T> {
     }
 
     /**
-     * The configured source options
+     * Returns the options configured for the file source.
      */
+    @Nonnull
     public Map<String, String> options() {
         return options;
     }
 
     /**
-     * The source path
+     * Returns the source path.
      */
+    @Nullable
     public String path() {
         return path;
     }
 
     /**
-     * The source format
+     * Returns the source format.
      */
+    @Nullable
     public FileFormat<T> format() {
         return format;
     }
 
     /**
-     * Build a batch source based on the configuration
+     * Builds a {@link BatchSource} based on the current state of the builder.
      */
+    @Nonnull
     public BatchSource<T> build() {
         if (path == null) {
             throw new IllegalStateException("Parameter 'path' is required");
@@ -171,18 +172,17 @@ public class FileSourceBuilder<T> {
         if (format == null) {
             throw new IllegalStateException("Parameter 'format' is required");
         }
-
         if (useHadoop || hasHadoopPrefix()) {
-
-            ServiceLoader<FileSourceFactory> loader = ServiceLoader.load(FileSourceFactory.class);
+            @SuppressWarnings({ "rawtypes", "unchecked" })
+            ServiceLoader<FileSourceFactory<T>> loader = ServiceLoader.load(
+                    (Class<FileSourceFactory<T>>) (Class) FileSourceFactory.class
+            );
             for (FileSourceFactory<T> fileSourceFactory : loader) {
                 return fileSourceFactory.create(this);
             }
-
             throw new JetException("No suitable FileSourceFactory found. " +
                     "Do you have Jet's Hadoop module on classpath?");
         }
-
         return new LocalFileSourceFactory<T>().create(this);
     }
 

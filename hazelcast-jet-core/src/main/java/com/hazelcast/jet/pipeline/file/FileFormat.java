@@ -17,7 +17,7 @@
 package com.hazelcast.jet.pipeline.file;
 
 /**
- * Specification of the file format
+ * Specification of the file format.
  *
  * @param <T> type of the items emitted from the source
  */

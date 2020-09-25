@@ -16,8 +16,10 @@
 
 package com.hazelcast.jet.pipeline.file;
 
+import javax.annotation.Nullable;
+
 /**
- * FileFormat for avro files
+ * {@link FileFormat} for avro files.
  *
  * @param <T> type of items emitted from the source
  */
@@ -31,9 +33,10 @@ public class AvroFileFormat<T> implements FileFormat<T> {
     private Class<T> reflectClass;
 
     /**
-     * Use reflection to deserialize data into given class
-     * <p>
-     * If set, uses ReflectDatumReader to read Avro data.
+     * Specifies to use reflection to deserialize data into the given class.
+     * Jet will use the {@code ReflectDatumReader} to read Avro data. The
+     * parameter may be null, this disables the option to deserialize using
+     * reflection.
      *
      * @param reflectClass class to deserialize data into
      */
@@ -43,10 +46,11 @@ public class AvroFileFormat<T> implements FileFormat<T> {
     }
 
     /**
-     * Class to deserialize data into using reflection.
+     * Returns the class Jet will deserialize data into (using reflection).
      *
      * Null if not set.
      */
+    @Nullable
     public Class<T> reflectClass() {
         return reflectClass;
     }
