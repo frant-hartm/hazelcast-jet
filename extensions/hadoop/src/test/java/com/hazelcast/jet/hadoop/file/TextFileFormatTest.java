@@ -75,7 +75,7 @@ public class TextFileFormatTest extends BaseFileFormatTest {
 
     @Test
     public void shouldReadAllFilesInDirectory() {
-        FileSourceBuilder<String> source = FileSources.files("src/test/resources/directory")
+        FileSourceBuilder<String> source = FileSources.files("src/test/resources/directory/")
                                                       .withFormat(new TextFileFormat(Charset.forName("Cp1250")));
 
         assertItemsInSource(source, (collected) -> assertThat(collected).hasSize(2));

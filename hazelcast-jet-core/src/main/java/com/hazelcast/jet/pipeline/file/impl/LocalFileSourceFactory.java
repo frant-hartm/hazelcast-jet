@@ -105,7 +105,10 @@ public class LocalFileSourceFactory<T> implements FileSourceFactory<T> {
 
         String directory;
         String glob = "*";
-        if (p.toFile().isDirectory()) {
+        // This might run on the client so it must not touch real filesystem.
+        // If we run this on the machines than different nodes could interpret the path differently
+        // So this is best guess that directories end with /
+        if (path.endsWith("/")) {
             directory = p.toString();
         } else {
             Path parent = p.getParent();
