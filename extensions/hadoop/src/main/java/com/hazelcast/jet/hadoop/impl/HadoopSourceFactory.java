@@ -49,6 +49,7 @@ import org.apache.parquet.avro.AvroParquetInputFormat;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.BiFunction;
 
 import static com.hazelcast.jet.hadoop.impl.CsvInputFormat.CSV_INPUT_FORMAT_BEAN_CLASS;
 import static com.hazelcast.jet.hadoop.impl.JsonInputFormat.JSON_INPUT_FORMAT_BEAN_CLASS;
@@ -60,7 +61,9 @@ import static com.hazelcast.jet.hadoop.impl.JsonInputFormat.JSON_INPUT_FORMAT_BE
  */
 public class HadoopSourceFactory<T> implements FileSourceFactory<T> {
 
-    private final Map<Class<? extends FileFormat>, JobConfigurer<?, ?>> configs;
+    private final Map<
+            Class<? extends FileFormat>,
+            JobConfigurer<? extends FileFormat<?>, ? extends BiFunctionEx<?, ?, ?>>> configs;
 
     /**
      * Creates HadoopSourceFactory
@@ -84,9 +87,9 @@ public class HadoopSourceFactory<T> implements FileSourceFactory<T> {
             Job job = Job.getInstance();
             FileInputFormat.addInputPath(job, new Path(builder.path()));
 
-            FileFormat<T> fileFormat = builder.format();
-            JobConfigurer<FileFormat, BiFunctionEx<?, ?, T>> configurer =
-                    (JobConfigurer<FileFormat, BiFunctionEx<?, ?, T>>) configs.get(fileFormat.getClass());
+            FileFormat<?> fileFormat = builder.format();
+            JobConfigurer<FileFormat<?>, BiFunctionEx<?, ?, T>> configurer =
+                    (JobConfigurer<FileFormat<?>, BiFunctionEx<?, ?, T>>) configs.get(fileFormat.getClass());
             configurer.configure(job, fileFormat);
 
             Configuration configuration = job.getConfiguration();
@@ -96,7 +99,7 @@ public class HadoopSourceFactory<T> implements FileSourceFactory<T> {
         }
     }
 
-    public interface JobConfigurer<F, Fn> {
+    public interface JobConfigurer<F extends FileFormat<?>, Fn extends BiFunction<?, ?, ?>> {
 
         void configure(Job job, F format);
 

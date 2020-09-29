@@ -23,6 +23,7 @@ import org.apache.avro.file.DataFileReader;
 import org.apache.avro.io.DatumReader;
 import org.apache.avro.reflect.ReflectDatumReader;
 import org.apache.avro.specific.SpecificDatumReader;
+import org.apache.avro.specific.SpecificRecord;
 
 import java.nio.file.Path;
 import java.util.stream.Stream;
@@ -50,6 +51,9 @@ public class AvroMapFnProvider<T> implements MapFnProvider<AvroFileFormat<T>, T>
     }
 
     private static <T> DatumReader<T> datumReader(Class<T> reflectClass) {
+        if (SpecificRecord.class.isAssignableFrom(reflectClass)) {
+            return new SpecificDatumReader<>(reflectClass);
+        }
         return reflectClass == null ? new SpecificDatumReader<>() : new ReflectDatumReader<>(reflectClass);
     }
 

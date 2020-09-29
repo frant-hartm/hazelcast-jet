@@ -28,4 +28,8 @@ public interface FileFormat<T> {
      * descriptive name
      */
     String format();
+
+    static <T> CsvFileFormat<T> csv(Class<T> clazz) {
+        return new CsvFileFormat<T>(clazz);
+    }
 }

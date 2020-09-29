@@ -27,7 +27,8 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 
 
 /**
- * From
+ * Adapted from code example from book
+ * Hadoop: The Definitive Guide, Fourth Edition by Tom White (O'Reilly, 2014)
  * https://github.com/tomwhite/hadoop-book/blob/master/ch08-mr-types/src/main/java/WholeFileInputFormat.java
  */
 public class WholeFileInputFormat extends FileInputFormat<NullWritable, BytesWritable> {

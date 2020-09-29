@@ -37,7 +37,8 @@ public class AvroFileFormatTest extends BaseFileFormatTest {
         createAvroFile();
 
         FileSourceBuilder<SpecificUser> source = FileSources.files("target/avro/file.avro")
-                                                            .withFormat(new AvroFileFormat<>());
+                                                            .withFormat(new AvroFileFormat<SpecificUser>()
+                                                                    .withReflect(SpecificUser.class));
         assertItemsInSource(source,
                 new SpecificUser("Frantisek", 7),
                 new SpecificUser("Ali", 42)
