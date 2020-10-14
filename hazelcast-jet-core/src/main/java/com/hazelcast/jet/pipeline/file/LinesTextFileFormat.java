@@ -16,9 +16,11 @@
 
 package com.hazelcast.jet.pipeline.file;
 
+import javax.annotation.Nonnull;
 import java.nio.charset.Charset;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Objects.requireNonNull;
 
 /**
  * FileFormat for text files which read each line as a String item emitted from the source
@@ -44,8 +46,8 @@ public class LinesTextFileFormat implements FileFormat<String> {
      *
      * NOTE: This option is supported for local files only, not for files read using the Hadoop connector
      */
-    public LinesTextFileFormat(Charset charset) {
-        this.charset = charset;
+    public LinesTextFileFormat(@Nonnull Charset charset) {
+        this.charset = requireNonNull(charset, "charset must not be null");
     }
 
     /**

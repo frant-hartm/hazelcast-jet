@@ -17,9 +17,9 @@
 package com.hazelcast.jet.hadoop.file;
 
 import com.hazelcast.jet.hadoop.file.generated.SpecificUser;
+import com.hazelcast.jet.pipeline.file.FileFormat;
 import com.hazelcast.jet.pipeline.file.FileSourceBuilder;
 import com.hazelcast.jet.pipeline.file.FileSources;
-import com.hazelcast.jet.pipeline.file.ParquetFileFormat;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -45,7 +45,7 @@ public class ParquetFileFormatTest extends BaseFileFormatTest {
         createParquetFile();
 
         FileSourceBuilder<SpecificUser> source = FileSources.files("target/parquet/file.parquet")
-                                                            .withFormat(new ParquetFileFormat<>());
+                                                            .withFormat(FileFormat.parquet());
         assertItemsInSource(source,
                 new SpecificUser("Frantisek", 7),
                 new SpecificUser("Ali", 42)

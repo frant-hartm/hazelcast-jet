@@ -41,8 +41,8 @@ public final class FileSources {
      * @param path
      * @return
      */
-    public static FileSourceBuilder<byte[]> files(String path) {
+    public static FileSourceBuilder<String> files(String path) {
         return new FileSourceBuilder<>(path)
-                .withFormat(new RawBytesFileFormat());
+                .withFormat(new LinesTextFileFormat());
     }
 }

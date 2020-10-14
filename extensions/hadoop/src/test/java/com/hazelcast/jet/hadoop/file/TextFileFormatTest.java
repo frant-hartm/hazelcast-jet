@@ -80,4 +80,11 @@ public class TextFileFormatTest extends BaseFileFormatTest {
 
         assertItemsInSource(source, (collected) -> assertThat(collected).hasSize(2));
     }
+
+    @Test
+    public void defaultFileFormatShouldReadFileAsLines() {
+        FileSourceBuilder<String> source = FileSources.files("src/test/resources/file.txt");
+
+        assertItemsInSource(source, "Text contents of", "the file.");
+    }
 }

@@ -16,6 +16,10 @@
 
 package com.hazelcast.jet.pipeline.file;
 
+import javax.annotation.Nonnull;
+
+import static java.util.Objects.requireNonNull;
+
 /**
  * FileFormat for JSON Lines files
  *
@@ -35,8 +39,8 @@ public class JsonFileFormat<T> implements FileFormat<T> {
      *
      * @param clazz class to deserialize into
      */
-    public JsonFileFormat(Class<T> clazz) {
-        this.clazz = clazz;
+    public JsonFileFormat(@Nonnull Class<T> clazz) {
+        this.clazz = requireNonNull(clazz, "class must not be null");
     }
 
     /**

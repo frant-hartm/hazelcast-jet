@@ -17,7 +17,7 @@
 package com.hazelcast.jet.hadoop.file;
 
 import com.hazelcast.jet.hadoop.file.model.User;
-import com.hazelcast.jet.pipeline.file.CsvFileFormat;
+import com.hazelcast.jet.pipeline.file.FileFormat;
 import com.hazelcast.jet.pipeline.file.FileSourceBuilder;
 import com.hazelcast.jet.pipeline.file.FileSources;
 import org.junit.Test;
@@ -28,7 +28,7 @@ public class CsvFileFormatTest extends BaseFileFormatTest {
     public void shouldReadCsvFile() throws Exception {
 
         FileSourceBuilder<User> source = FileSources.files("src/test/resources/file.csv")
-                                                    .withFormat(new CsvFileFormat<>(User.class));
+                                                    .withFormat(FileFormat.csv(User.class));
 
         assertItemsInSource(source,
                 new User("Frantisek", 7),
