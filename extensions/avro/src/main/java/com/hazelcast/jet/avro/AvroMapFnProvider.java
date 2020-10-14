@@ -18,6 +18,7 @@ package com.hazelcast.jet.avro;
 
 import com.hazelcast.function.FunctionEx;
 import com.hazelcast.jet.pipeline.file.AvroFileFormat;
+import com.hazelcast.jet.pipeline.file.FileFormat;
 import com.hazelcast.jet.pipeline.file.impl.MapFnProvider;
 import org.apache.avro.file.DataFileReader;
 import org.apache.avro.io.DatumReader;
@@ -34,14 +35,13 @@ import static com.hazelcast.jet.impl.util.Util.uncheckRun;
 /**
  * MapFnProvider for Avro files, reading given path and deserializing using
  * avro DatumReader
- *
- * @param <T> type of the item emitted from the source
  */
-public class AvroMapFnProvider<T> implements MapFnProvider<AvroFileFormat<T>, T> {
+public class AvroMapFnProvider implements MapFnProvider {
 
     @Override
-    public FunctionEx<Path, Stream<T>> create(AvroFileFormat<T> format) {
-        Class<T> reflectClass = format.reflectClass();
+    public <T> FunctionEx<Path, Stream<T>> create(FileFormat<T> format) {
+        AvroFileFormat<T> avroFileFormat = (AvroFileFormat<T>) format;
+        Class<T> reflectClass = avroFileFormat.reflectClass();
         return (path) -> {
             DatumReader<T> datumReader = datumReader(reflectClass);
             DataFileReader<T> reader = new DataFileReader<>(path.toFile(), datumReader);
@@ -51,9 +51,10 @@ public class AvroMapFnProvider<T> implements MapFnProvider<AvroFileFormat<T>, T>
     }
 
     private static <T> DatumReader<T> datumReader(Class<T> reflectClass) {
-        if (SpecificRecord.class.isAssignableFrom(reflectClass)) {
+//        TODO handle when class is subtype of SpecificRecord
+/*        if (SpecificRecord.class.isAssignableFrom(reflectClass)) {
             return new SpecificDatumReader<>(reflectClass);
-        }
+        }*/
         return reflectClass == null ? new SpecificDatumReader<>() : new ReflectDatumReader<>(reflectClass);
     }
 

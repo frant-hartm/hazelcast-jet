@@ -60,7 +60,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  */
 public class LocalFileSourceFactory implements FileSourceFactory {
 
-    private Map<String, MapFnProvider<? extends FileFormat<?>, ?>> mapFns;
+    private Map<String, MapFnProvider> mapFns;
 
     /**
      * Default constructor
@@ -69,19 +69,19 @@ public class LocalFileSourceFactory implements FileSourceFactory {
         mapFns = new HashMap<>();
 
         addMapFnProvider(new CsvMapFnProvider());
-        addMapFnProvider(new JsonMapFnProvider<>());
+        addMapFnProvider(new JsonMapFnProvider());
         addMapFnProvider(new LinesMapFnProvider());
         addMapFnProvider(new ParquetMapFnProvider());
         addMapFnProvider(new RawBytesMapFnProvider());
         addMapFnProvider(new TextMapFnProvider());
 
         ServiceLoader<MapFnProvider> loader = ServiceLoader.load(MapFnProvider.class);
-        for (MapFnProvider<?, ?> mapFnProvider : loader) {
+        for (MapFnProvider mapFnProvider : loader) {
             addMapFnProvider(mapFnProvider);
         }
     }
 
-    private void addMapFnProvider(MapFnProvider<? extends FileFormat<?>, ?> provider) {
+    private void addMapFnProvider(MapFnProvider provider) {
         mapFns.put(provider.format(), provider);
     }
 
@@ -89,8 +89,8 @@ public class LocalFileSourceFactory implements FileSourceFactory {
     public <T> BatchSource<T> create(FileSourceBuilder<T> builder) {
         Tuple2<String, String> dirAndGlob = deriveDirectoryAndGlobFromPath(builder.path());
 
-        FileFormat<?> format = builder.format();
-        MapFnProvider<FileFormat<?>, T> mapFnProvider = (MapFnProvider<FileFormat<?>, T>) mapFns.get(format.format());
+        FileFormat<T> format = (builder.format());
+        MapFnProvider mapFnProvider = mapFns.get(format.format());
         FunctionEx<Path, Stream<T>> mapFn = mapFnProvider.create(format);
         return Sources.filesBuilder(dirAndGlob.f0())
                       .glob(dirAndGlob.f1())
@@ -127,9 +127,9 @@ public class LocalFileSourceFactory implements FileSourceFactory {
     }
 
     @SuppressFBWarnings("OBL_UNSATISFIED_OBLIGATION")
-    private abstract static class AbstractMapFnProvider<F extends FileFormat<?>, T> implements MapFnProvider<F, T> {
+    private abstract static class AbstractMapFnProvider implements MapFnProvider {
 
-        public FunctionEx<Path, Stream<T>> create(F format) {
+        public <T> FunctionEx<Path, Stream<T>> create(FileFormat<T> format) {
             FunctionEx<InputStream, Stream<T>> mapInputStreamFn = mapInputStreamFn(format);
             return path -> {
                 FileInputStream fis = new FileInputStream(path.toFile());
@@ -137,14 +137,15 @@ public class LocalFileSourceFactory implements FileSourceFactory {
             };
         }
 
-        abstract FunctionEx<InputStream, Stream<T>> mapInputStreamFn(F format);
+        abstract <T> FunctionEx<InputStream, Stream<T>> mapInputStreamFn(FileFormat<T> format);
     }
 
-    private static class CsvMapFnProvider extends AbstractMapFnProvider<CsvFileFormat<?>, Object> {
+    private static class CsvMapFnProvider extends AbstractMapFnProvider {
 
         @Override
-        FunctionEx<InputStream, Stream<Object>> mapInputStreamFn(CsvFileFormat<?> format) {
-            Class<?> formatClazz = format.clazz(); // Format is not Serializable
+        <T> FunctionEx<InputStream, Stream<T>> mapInputStreamFn(FileFormat<T> format) {
+            CsvFileFormat<T> csvFileFormat = (CsvFileFormat<T>) format;
+            Class<?> formatClazz = csvFileFormat.clazz(); // Format is not Serializable
             return is -> {
                 CsvSchema schema = CsvSchema.emptySchema().withHeader();
                 CsvMapper mapper = new CsvMapper();
@@ -164,11 +165,12 @@ public class LocalFileSourceFactory implements FileSourceFactory {
         }
     }
 
-    private static class JsonMapFnProvider<T> extends AbstractMapFnProvider<JsonFileFormat<T>, T> {
+    private static class JsonMapFnProvider extends AbstractMapFnProvider {
 
         @Override
-        FunctionEx<InputStream, Stream<T>> mapInputStreamFn(JsonFileFormat<T> format) {
-            Class<T> thisClazz = format.clazz();
+        <T> FunctionEx<InputStream, Stream<T>> mapInputStreamFn(FileFormat<T> format) {
+            JsonFileFormat<T> jsonFileFormat = (JsonFileFormat<T>) format;
+            Class<T> thisClazz = jsonFileFormat.clazz();
             return is -> {
                 BufferedReader reader = new BufferedReader(new InputStreamReader(is, UTF_8));
 
@@ -184,14 +186,16 @@ public class LocalFileSourceFactory implements FileSourceFactory {
         }
     }
 
-    private static class LinesMapFnProvider extends AbstractMapFnProvider<LinesTextFileFormat, String> {
+    private static class LinesMapFnProvider extends AbstractMapFnProvider {
 
-        @Override FunctionEx<InputStream, Stream<String>> mapInputStreamFn(LinesTextFileFormat format) {
-            String thisCharset = format.charset().name();
+        @Override
+        <T> FunctionEx<InputStream, Stream<T>> mapInputStreamFn(FileFormat<T> format) {
+            LinesTextFileFormat linesTextFileFormat = (LinesTextFileFormat) format;
+            String thisCharset = linesTextFileFormat.charset().name();
             return is -> {
                 BufferedReader reader = new BufferedReader(new InputStreamReader(is, thisCharset));
-                return reader.lines()
-                             .onClose(() -> uncheckRun(reader::close));
+                return (Stream<T>) reader.lines()
+                                         .onClose(() -> uncheckRun(reader::close));
             };
         }
 
@@ -201,10 +205,10 @@ public class LocalFileSourceFactory implements FileSourceFactory {
         }
     }
 
-    private static class ParquetMapFnProvider implements MapFnProvider<ParquetFileFormat<?>, Object> {
+    private static class ParquetMapFnProvider implements MapFnProvider {
 
         @Override
-        public FunctionEx<Path, Stream<Object>> create(ParquetFileFormat<?> format) {
+        public <T> FunctionEx<Path, Stream<T>> create(FileFormat<T> format) {
             throw new UnsupportedOperationException("Reading Parquet files is not supported in local filesystem mode." +
                     " " +
                     "Use Jet Hadoop module with FileSourceBuilder.useHadoopForLocalFiles option instead.");
@@ -216,11 +220,11 @@ public class LocalFileSourceFactory implements FileSourceFactory {
         }
     }
 
-    private static class RawBytesMapFnProvider extends AbstractMapFnProvider<RawBytesFileFormat, byte[]> {
+    private static class RawBytesMapFnProvider extends AbstractMapFnProvider {
 
         @Override
-        FunctionEx<InputStream, Stream<byte[]>> mapInputStreamFn(RawBytesFileFormat format) {
-            return is -> Stream.of(IOUtil.readFully(is));
+        <T> FunctionEx<InputStream, Stream<T>> mapInputStreamFn(FileFormat<T> format) {
+            return is -> (Stream<T>) Stream.of(IOUtil.readFully(is));
         }
 
         @Override
@@ -229,12 +233,13 @@ public class LocalFileSourceFactory implements FileSourceFactory {
         }
     }
 
-    private static class TextMapFnProvider extends AbstractMapFnProvider<TextFileFormat, String> {
+    private static class TextMapFnProvider extends AbstractMapFnProvider {
 
         @Override
-        FunctionEx<InputStream, Stream<String>> mapInputStreamFn(TextFileFormat format) {
-            String thisCharset = format.charset().name();
-            return is -> Stream.of(new String(IOUtil.readFully(is), Charset.forName(thisCharset)));
+        <T> FunctionEx<InputStream, Stream<T>> mapInputStreamFn(FileFormat<T> format) {
+            TextFileFormat textFileFormat = (TextFileFormat) format;
+            String thisCharset = textFileFormat.charset().name();
+            return is -> (Stream<T>) Stream.of(new String(IOUtil.readFully(is), Charset.forName(thisCharset)));
         }
 
         @Override

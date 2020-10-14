@@ -85,6 +85,7 @@ public class HadoopSourceFactory implements FileSourceFactory {
 
             FileFormat<T> fileFormat = requireNonNull(builder.format());
             JobConfigurer configurer = configs.get(fileFormat.format());
+            configurer.configure(job, fileFormat);
 
             Configuration configuration = job.getConfiguration();
             return HadoopSources.inputFormat(configuration, configurer.projectionFn());
@@ -167,13 +168,12 @@ public class HadoopSourceFactory implements FileSourceFactory {
         }
 
         @Override
-        public BiFunctionEx<NullWritable, Object, Object> projectionFn() {
+        public <T> BiFunctionEx<NullWritable, T, T> projectionFn() {
             return (k, v) -> v;
         }
     }
 
-    private static class JsonFormatJobConfigurer
-            implements JobConfigurer {
+    private static class JsonFormatJobConfigurer implements JobConfigurer {
 
         @Override
         public <T> void configure(Job job, FileFormat<T> format) {
@@ -183,11 +183,10 @@ public class HadoopSourceFactory implements FileSourceFactory {
         }
 
         @Override
-        public BiFunctionEx<LongWritable, ?, ?> projectionFn() {
+        public <T> BiFunctionEx<LongWritable, T, T> projectionFn() {
             return (k, v) -> v;
         }
     }
-
 
     private static class LineTextJobConfigurer implements JobConfigurer {
 
