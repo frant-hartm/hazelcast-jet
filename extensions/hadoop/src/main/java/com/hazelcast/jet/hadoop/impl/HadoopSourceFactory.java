@@ -24,12 +24,12 @@ import com.hazelcast.jet.pipeline.file.AvroFileFormat;
 import com.hazelcast.jet.pipeline.file.CsvFileFormat;
 import com.hazelcast.jet.pipeline.file.FileFormat;
 import com.hazelcast.jet.pipeline.file.FileSourceBuilder;
-import com.hazelcast.jet.pipeline.file.FileSourceFactory;
 import com.hazelcast.jet.pipeline.file.JsonFileFormat;
 import com.hazelcast.jet.pipeline.file.LinesTextFileFormat;
 import com.hazelcast.jet.pipeline.file.ParquetFileFormat;
 import com.hazelcast.jet.pipeline.file.RawBytesFileFormat;
 import com.hazelcast.jet.pipeline.file.TextFileFormat;
+import com.hazelcast.jet.pipeline.file.impl.FileSourceFactory;
 import org.apache.avro.Schema;
 import org.apache.avro.mapred.AvroKey;
 import org.apache.avro.mapreduce.AvroJob;
@@ -56,14 +56,10 @@ import static com.hazelcast.jet.hadoop.impl.JsonInputFormat.JSON_INPUT_FORMAT_BE
 
 /**
  * Hadoop based implementation for FileSourceFactory
- *
- * @param <T> type of the items emitted from the source
  */
-public class HadoopSourceFactory<T> implements FileSourceFactory<T> {
+public class HadoopSourceFactory implements FileSourceFactory {
 
-    private final Map<
-            Class<? extends FileFormat>,
-            JobConfigurer<? extends FileFormat<?>, ? extends BiFunctionEx<?, ?, ?>>> configs;
+    private final Map<String, JobConfigurer<? extends FileFormat<?>, ? extends BiFunctionEx<?, ?, ?>>> configs;
 
     /**
      * Creates HadoopSourceFactory
@@ -71,17 +67,17 @@ public class HadoopSourceFactory<T> implements FileSourceFactory<T> {
     public HadoopSourceFactory() {
         configs = new HashMap<>();
 
-        configs.put(AvroFileFormat.class, new AvroFormatJobConfigurer());
-        configs.put(CsvFileFormat.class, new CsvFormatJobConfigurer());
-        configs.put(JsonFileFormat.class, new JsonFormatJobConfigurer());
-        configs.put(LinesTextFileFormat.class, new LineTextJobConfigurer());
-        configs.put(ParquetFileFormat.class, new ParquetFormatJobConfigurer());
-        configs.put(RawBytesFileFormat.class, new RawBytesFormatJobConfigurer());
-        configs.put(TextFileFormat.class, new TextJobConfigurer());
+        configs.put(AvroFileFormat.FORMAT_AVRO, new AvroFormatJobConfigurer());
+        configs.put(CsvFileFormat.FORMAT_CSV, new CsvFormatJobConfigurer());
+        configs.put(JsonFileFormat.FORMAT_JSONL, new JsonFormatJobConfigurer());
+        configs.put(LinesTextFileFormat.FORMAT_LINES, new LineTextJobConfigurer());
+        configs.put(ParquetFileFormat.FORMAT_PARQUET, new ParquetFormatJobConfigurer());
+        configs.put(RawBytesFileFormat.FORMAT_BIN, new RawBytesFormatJobConfigurer());
+        configs.put(TextFileFormat.FORMAT_TXT, new TextJobConfigurer());
     }
 
     @Override
-    public BatchSource<T> create(FileSourceBuilder<T> builder) {
+    public <T> BatchSource<T> create(FileSourceBuilder<T> builder) {
 
         try {
             Job job = Job.getInstance();
@@ -99,10 +95,34 @@ public class HadoopSourceFactory<T> implements FileSourceFactory<T> {
         }
     }
 
+    /**
+     * Hadoop map-reduce job configurer
+     *
+     * @param <F> concrete type of the FileFormat
+     */
     public interface JobConfigurer<F extends FileFormat<?>, Fn extends BiFunction<?, ?, ?>> {
 
+        /**
+         * Configure the given job with a file format
+         *
+         * This method should set the input format class and any
+         * required configuration parameters.
+         *
+         * @param job    map-reduce job to configure
+         * @param format format to configure the job with
+         */
         void configure(Job job, F format);
 
+        /**
+         * Projection function from the key-value result of the
+         * map-reduce job into the item emitted from the source.
+         *
+         * The types of key/value are determined by the input format
+         * class set by the configure method.
+         *
+         * @return projection function from key-value result into the
+         * item emitted from the source
+         */
         Fn projectionFn();
     }
 

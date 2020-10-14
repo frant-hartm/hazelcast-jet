@@ -14,19 +14,21 @@
  * limitations under the License.
  */
 
-package com.hazelcast.jet.pipeline.file;
+package com.hazelcast.jet.pipeline.file.impl;
 
 import com.hazelcast.jet.pipeline.BatchSource;
+import com.hazelcast.jet.pipeline.file.FileSourceBuilder;
 
 /**
- * @param <T>
+ *
  */
-public interface FileSourceFactory<T> {
+public interface FileSourceFactory {
 
     /**
      * Create an instance of the source from the given builder
      *
      * @param builder configured FileSourceBuilder
+     * @param <T>     type of the item emitted from the source
      */
-    BatchSource<T> create(FileSourceBuilder<T> builder);
+    <T> BatchSource<T> create(FileSourceBuilder<T> builder);
 }

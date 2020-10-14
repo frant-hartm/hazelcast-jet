@@ -18,6 +18,7 @@ package com.hazelcast.jet.pipeline.file;
 
 import com.hazelcast.jet.JetException;
 import com.hazelcast.jet.pipeline.BatchSource;
+import com.hazelcast.jet.pipeline.file.impl.FileSourceFactory;
 import com.hazelcast.jet.pipeline.file.impl.LocalFileSourceFactory;
 
 import javax.annotation.Nonnull;
@@ -148,7 +149,7 @@ public class FileSourceBuilder<T> {
     /**
      * Returns the source path.
      */
-    @Nullable
+    @Nonnull
     public String path() {
         return path;
     }
@@ -173,17 +174,14 @@ public class FileSourceBuilder<T> {
             throw new IllegalStateException("Parameter 'format' is required");
         }
         if (useHadoop || hasHadoopPrefix()) {
-            @SuppressWarnings({ "rawtypes", "unchecked" })
-            ServiceLoader<FileSourceFactory<T>> loader = ServiceLoader.load(
-                    (Class<FileSourceFactory<T>>) (Class) FileSourceFactory.class
-            );
-            for (FileSourceFactory<T> fileSourceFactory : loader) {
+            ServiceLoader<FileSourceFactory> loader = ServiceLoader.load(FileSourceFactory.class);
+            for (FileSourceFactory fileSourceFactory : loader) {
                 return fileSourceFactory.create(this);
             }
             throw new JetException("No suitable FileSourceFactory found. " +
                     "Do you have Jet's Hadoop module on classpath?");
         }
-        return new LocalFileSourceFactory<T>().create(this);
+        return new LocalFileSourceFactory().create(this);
     }
 
     private boolean hasHadoopPrefix() {

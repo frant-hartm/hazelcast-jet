@@ -28,7 +28,6 @@ import com.hazelcast.jet.pipeline.Sources;
 import com.hazelcast.jet.pipeline.file.CsvFileFormat;
 import com.hazelcast.jet.pipeline.file.FileFormat;
 import com.hazelcast.jet.pipeline.file.FileSourceBuilder;
-import com.hazelcast.jet.pipeline.file.FileSourceFactory;
 import com.hazelcast.jet.pipeline.file.JsonFileFormat;
 import com.hazelcast.jet.pipeline.file.LinesTextFileFormat;
 import com.hazelcast.jet.pipeline.file.ParquetFileFormat;
@@ -58,10 +57,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * Implementation of FileSourceFactory for local filesystem
- *
- * @param <T> type of the item emitted from the source
  */
-public class LocalFileSourceFactory<T> implements FileSourceFactory<T> {
+public class LocalFileSourceFactory implements FileSourceFactory {
 
     private Map<String, MapFnProvider<? extends FileFormat<?>, ?>> mapFns;
 
@@ -79,7 +76,7 @@ public class LocalFileSourceFactory<T> implements FileSourceFactory<T> {
         addMapFnProvider(new TextMapFnProvider());
 
         ServiceLoader<MapFnProvider> loader = ServiceLoader.load(MapFnProvider.class);
-        for (MapFnProvider mapFnProvider : loader) {
+        for (MapFnProvider<?, ?> mapFnProvider : loader) {
             addMapFnProvider(mapFnProvider);
         }
     }
@@ -89,7 +86,7 @@ public class LocalFileSourceFactory<T> implements FileSourceFactory<T> {
     }
 
     @Override
-    public BatchSource<T> create(FileSourceBuilder<T> builder) {
+    public <T> BatchSource<T> create(FileSourceBuilder<T> builder) {
         Tuple2<String, String> dirAndGlob = deriveDirectoryAndGlobFromPath(builder.path());
 
         FileFormat<?> format = builder.format();
@@ -219,10 +216,10 @@ public class LocalFileSourceFactory<T> implements FileSourceFactory<T> {
         }
     }
 
-    private static class RawBytesMapFnProvider extends AbstractMapFnProvider<RawBytesFileFormat, Object> {
+    private static class RawBytesMapFnProvider extends AbstractMapFnProvider<RawBytesFileFormat, byte[]> {
 
         @Override
-        FunctionEx<InputStream, Stream<Object>> mapInputStreamFn(RawBytesFileFormat format) {
+        FunctionEx<InputStream, Stream<byte[]>> mapInputStreamFn(RawBytesFileFormat format) {
             return is -> Stream.of(IOUtil.readFully(is));
         }
 
@@ -232,10 +229,10 @@ public class LocalFileSourceFactory<T> implements FileSourceFactory<T> {
         }
     }
 
-    private static class TextMapFnProvider extends AbstractMapFnProvider<TextFileFormat, Object> {
+    private static class TextMapFnProvider extends AbstractMapFnProvider<TextFileFormat, String> {
 
         @Override
-        FunctionEx<InputStream, Stream<Object>> mapInputStreamFn(TextFileFormat format) {
+        FunctionEx<InputStream, Stream<String>> mapInputStreamFn(TextFileFormat format) {
             String thisCharset = format.charset().name();
             return is -> Stream.of(new String(IOUtil.readFully(is), Charset.forName(thisCharset)));
         }
