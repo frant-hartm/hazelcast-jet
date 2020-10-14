@@ -49,17 +49,17 @@ import org.apache.parquet.avro.AvroParquetInputFormat;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.BiFunction;
 
 import static com.hazelcast.jet.hadoop.impl.CsvInputFormat.CSV_INPUT_FORMAT_BEAN_CLASS;
 import static com.hazelcast.jet.hadoop.impl.JsonInputFormat.JSON_INPUT_FORMAT_BEAN_CLASS;
+import static java.util.Objects.requireNonNull;
 
 /**
  * Hadoop based implementation for FileSourceFactory
  */
 public class HadoopSourceFactory implements FileSourceFactory {
 
-    private final Map<String, JobConfigurer<? extends FileFormat<?>, ? extends BiFunctionEx<?, ?, ?>>> configs;
+    private final Map<String, JobConfigurer> configs;
 
     /**
      * Creates HadoopSourceFactory
@@ -83,10 +83,8 @@ public class HadoopSourceFactory implements FileSourceFactory {
             Job job = Job.getInstance();
             FileInputFormat.addInputPath(job, new Path(builder.path()));
 
-            FileFormat<?> fileFormat = builder.format();
-            JobConfigurer<FileFormat<?>, BiFunctionEx<?, ?, T>> configurer =
-                    (JobConfigurer<FileFormat<?>, BiFunctionEx<?, ?, T>>) configs.get(fileFormat.getClass());
-            configurer.configure(job, fileFormat);
+            FileFormat<T> fileFormat = requireNonNull(builder.format());
+            JobConfigurer configurer = configs.get(fileFormat.format());
 
             Configuration configuration = job.getConfiguration();
             return HadoopSources.inputFormat(configuration, configurer.projectionFn());
@@ -98,9 +96,8 @@ public class HadoopSourceFactory implements FileSourceFactory {
     /**
      * Hadoop map-reduce job configurer
      *
-     * @param <F> concrete type of the FileFormat
      */
-    public interface JobConfigurer<F extends FileFormat<?>, Fn extends BiFunction<?, ?, ?>> {
+    public interface JobConfigurer {
 
         /**
          * Configure the given job with a file format
@@ -111,7 +108,7 @@ public class HadoopSourceFactory implements FileSourceFactory {
          * @param job    map-reduce job to configure
          * @param format format to configure the job with
          */
-        void configure(Job job, F format);
+        <T> void configure(Job job, FileFormat<T> format);
 
         /**
          * Projection function from the key-value result of the
@@ -123,17 +120,17 @@ public class HadoopSourceFactory implements FileSourceFactory {
          * @return projection function from key-value result into the
          * item emitted from the source
          */
-        Fn projectionFn();
+        <T> BiFunctionEx<?, ?, T> projectionFn();
     }
 
-    private static class AvroFormatJobConfigurer implements
-            JobConfigurer<AvroFileFormat<?>, BiFunctionEx<AvroKey<?>, NullWritable, ?>> {
+    private static class AvroFormatJobConfigurer implements JobConfigurer {
 
         @Override
-        public void configure(Job job, AvroFileFormat<?> format) {
+        public <T> void configure(Job job, FileFormat<T> format) {
+            AvroFileFormat<T> avroFileFormat = (AvroFileFormat<T>) format;
             job.setInputFormatClass(AvroKeyInputFormat.class);
 
-            Class<?> reflectClass = format.reflectClass();
+            Class<?> reflectClass = avroFileFormat.reflectClass();
             if (reflectClass != null) {
                 Schema schema = ReflectData.get().getSchema(reflectClass);
                 AvroJob.setInputKeySchema(job, schema);
@@ -141,17 +138,15 @@ public class HadoopSourceFactory implements FileSourceFactory {
         }
 
         @Override
-        public BiFunctionEx<AvroKey<?>, NullWritable, ?> projectionFn() {
+        public <T> BiFunctionEx<AvroKey<T>, NullWritable, T> projectionFn() {
             return (k, v) -> k.datum();
         }
     }
 
-    private static class RawBytesFormatJobConfigurer implements
-            JobConfigurer<RawBytesFileFormat, BiFunctionEx<NullWritable, BytesWritable, byte[]>> {
-
+    private static class RawBytesFormatJobConfigurer implements JobConfigurer {
 
         @Override
-        public void configure(Job job, RawBytesFileFormat format) {
+        public <T> void configure(Job job, FileFormat<T> format) {
             job.setInputFormatClass(WholeFileInputFormat.class);
         }
 
@@ -162,13 +157,13 @@ public class HadoopSourceFactory implements FileSourceFactory {
 
     }
 
-    private static class CsvFormatJobConfigurer
-            implements JobConfigurer<CsvFileFormat<?>, BiFunctionEx<NullWritable, Object, Object>> {
+    private static class CsvFormatJobConfigurer implements JobConfigurer {
 
         @Override
-        public void configure(Job job, CsvFileFormat<?> format) {
+        public <T> void configure(Job job, FileFormat<T> format) {
+            CsvFileFormat<T> csvFileFormat = (CsvFileFormat<T>) format;
             job.setInputFormatClass(CsvInputFormat.class);
-            job.getConfiguration().set(CSV_INPUT_FORMAT_BEAN_CLASS, format.clazz().getCanonicalName());
+            job.getConfiguration().set(CSV_INPUT_FORMAT_BEAN_CLASS, csvFileFormat.clazz().getCanonicalName());
         }
 
         @Override
@@ -178,12 +173,13 @@ public class HadoopSourceFactory implements FileSourceFactory {
     }
 
     private static class JsonFormatJobConfigurer
-            implements JobConfigurer<JsonFileFormat<?>, BiFunctionEx<LongWritable, ?, ?>> {
+            implements JobConfigurer {
 
         @Override
-        public void configure(Job job, JsonFileFormat<?> format) {
+        public <T> void configure(Job job, FileFormat<T> format) {
+            JsonFileFormat<T> jsonFileFormat = (JsonFileFormat<T>) format;
             job.setInputFormatClass(JsonInputFormat.class);
-            job.getConfiguration().set(JSON_INPUT_FORMAT_BEAN_CLASS, format.clazz().getCanonicalName());
+            job.getConfiguration().set(JSON_INPUT_FORMAT_BEAN_CLASS, jsonFileFormat.clazz().getCanonicalName());
         }
 
         @Override
@@ -193,11 +189,10 @@ public class HadoopSourceFactory implements FileSourceFactory {
     }
 
 
-    private static class LineTextJobConfigurer
-            implements JobConfigurer<LinesTextFileFormat, BiFunctionEx<LongWritable, Text, String>> {
+    private static class LineTextJobConfigurer implements JobConfigurer {
 
         @Override
-        public void configure(Job job, LinesTextFileFormat format) {
+        public <T> void configure(Job job, FileFormat<T> format) {
             job.setInputFormatClass(TextInputFormat.class);
         }
 
@@ -207,11 +202,10 @@ public class HadoopSourceFactory implements FileSourceFactory {
         }
     }
 
-    private static class ParquetFormatJobConfigurer
-            implements JobConfigurer<ParquetFileFormat<?>, BiFunctionEx<String, ?, ?>> {
+    private static class ParquetFormatJobConfigurer implements JobConfigurer {
 
         @Override
-        public void configure(Job job, ParquetFileFormat<?> format) {
+        public <T> void configure(Job job, FileFormat<T> format) {
             job.setInputFormatClass(AvroParquetInputFormat.class);
         }
 
@@ -221,11 +215,10 @@ public class HadoopSourceFactory implements FileSourceFactory {
         }
     }
 
-    private static class TextJobConfigurer
-            implements JobConfigurer<TextFileFormat, BiFunctionEx<NullWritable, Text, String>> {
+    private static class TextJobConfigurer implements JobConfigurer {
 
         @Override
-        public void configure(Job job, TextFileFormat format) {
+        public <T> void configure(Job job, FileFormat<T> format) {
             job.setInputFormatClass(WholeTextInputFormat.class);
         }
 
