@@ -24,11 +24,8 @@ import java.util.stream.Stream;
 
 /**
  * Provides a mapping function from a Path to a Stream of items emitted from local filesystem source
- *
- * @param <F> FileFormat type
- * @param <T> type of the items emitted from the file source
  */
-public interface MapFnProvider {
+public interface ReadFileFnProvider {
 
     /**
      * Returns a mapping function for a given a configured FileFormat
@@ -38,7 +35,7 @@ public interface MapFnProvider {
      * @return mapping function, which maps Path on local filesystem to a stream of
      * items emitted from the source
      */
-    <T> FunctionEx<Path, Stream<T>> create(FileFormat<T> format);
+    <T> FunctionEx<Path, Stream<T>> createReadFileFn(FileFormat<T> format);
 
     /**
      * Return unique identifier of the FileFormat, which the mapFn can read

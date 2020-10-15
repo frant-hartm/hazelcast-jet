@@ -44,7 +44,8 @@ public abstract class BaseFileFormatTest extends JetTestSupport {
         return Arrays.asList(true, false);
     }
 
-    protected <T> void assertItemsInSource(FileSourceBuilder<T> source, T... items) {
+    @SafeVarargs
+    protected final <T> void assertItemsInSource(FileSourceBuilder<T> source, T... items) {
         assertItemsInSource(source, collected -> assertThat(collected).containsOnly(items));
     }
 

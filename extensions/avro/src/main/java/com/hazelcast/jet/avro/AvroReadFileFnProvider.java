@@ -19,7 +19,7 @@ package com.hazelcast.jet.avro;
 import com.hazelcast.function.FunctionEx;
 import com.hazelcast.jet.pipeline.file.AvroFileFormat;
 import com.hazelcast.jet.pipeline.file.FileFormat;
-import com.hazelcast.jet.pipeline.file.impl.MapFnProvider;
+import com.hazelcast.jet.pipeline.file.impl.ReadFileFnProvider;
 import org.apache.avro.file.DataFileReader;
 import org.apache.avro.io.DatumReader;
 import org.apache.avro.reflect.ReflectDatumReader;
@@ -35,10 +35,10 @@ import static com.hazelcast.jet.impl.util.Util.uncheckRun;
  * MapFnProvider for Avro files, reading given path and deserializing using
  * avro DatumReader
  */
-public class AvroMapFnProvider implements MapFnProvider {
+public class AvroReadFileFnProvider implements ReadFileFnProvider {
 
     @Override
-    public <T> FunctionEx<Path, Stream<T>> create(FileFormat<T> format) {
+    public <T> FunctionEx<Path, Stream<T>> createReadFileFn(FileFormat<T> format) {
         AvroFileFormat<T> avroFileFormat = (AvroFileFormat<T>) format;
         Class<T> reflectClass = avroFileFormat.reflectClass();
         return (path) -> {

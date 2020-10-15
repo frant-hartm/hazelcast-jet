@@ -42,6 +42,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.ServiceLoader;
@@ -54,34 +55,34 @@ import static com.hazelcast.jet.datamodel.Tuple2.tuple2;
 import static com.hazelcast.jet.impl.util.Util.uncheckCall;
 import static com.hazelcast.jet.impl.util.Util.uncheckRun;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Objects.requireNonNull;
 
 /**
  * Implementation of FileSourceFactory for local filesystem
  */
 public class LocalFileSourceFactory implements FileSourceFactory {
 
-    private Map<String, MapFnProvider> mapFns;
+    private static Map<String, ReadFileFnProvider> readFileFnProviders;
 
-    /**
-     * Default constructor
-     */
-    public LocalFileSourceFactory() {
-        mapFns = new HashMap<>();
+    static {
+        Map<String, ReadFileFnProvider> mapFns = new HashMap<>();
 
-        addMapFnProvider(new CsvMapFnProvider());
-        addMapFnProvider(new JsonMapFnProvider());
-        addMapFnProvider(new LinesMapFnProvider());
-        addMapFnProvider(new ParquetMapFnProvider());
-        addMapFnProvider(new RawBytesMapFnProvider());
-        addMapFnProvider(new TextMapFnProvider());
+        addMapFnProvider(mapFns, new CsvReadFileFnProvider());
+        addMapFnProvider(mapFns, new JsonReadFileFnProvider());
+        addMapFnProvider(mapFns, new LinesReadFileFnProvider());
+        addMapFnProvider(mapFns, new ParquetReadFileFnProvider());
+        addMapFnProvider(mapFns, new RawBytesReadFileFnProvider());
+        addMapFnProvider(mapFns, new TextReadFileFnProvider());
 
-        ServiceLoader<MapFnProvider> loader = ServiceLoader.load(MapFnProvider.class);
-        for (MapFnProvider mapFnProvider : loader) {
-            addMapFnProvider(mapFnProvider);
+        ServiceLoader<ReadFileFnProvider> loader = ServiceLoader.load(ReadFileFnProvider.class);
+        for (ReadFileFnProvider readFileFnProvider : loader) {
+            addMapFnProvider(mapFns, readFileFnProvider);
         }
+
+        LocalFileSourceFactory.readFileFnProviders = Collections.unmodifiableMap(mapFns);
     }
 
-    private void addMapFnProvider(MapFnProvider provider) {
+    private static void addMapFnProvider(Map<String, ReadFileFnProvider> mapFns, ReadFileFnProvider provider) {
         mapFns.put(provider.format(), provider);
     }
 
@@ -89,9 +90,9 @@ public class LocalFileSourceFactory implements FileSourceFactory {
     public <T> BatchSource<T> create(FileSourceBuilder<T> builder) {
         Tuple2<String, String> dirAndGlob = deriveDirectoryAndGlobFromPath(builder.path());
 
-        FileFormat<T> format = (builder.format());
-        MapFnProvider mapFnProvider = mapFns.get(format.format());
-        FunctionEx<Path, Stream<T>> mapFn = mapFnProvider.create(format);
+        FileFormat<T> format = requireNonNull(builder.format());
+        ReadFileFnProvider readFileFnProvider = readFileFnProviders.get(format.format());
+        FunctionEx<Path, Stream<T>> mapFn = readFileFnProvider.createReadFileFn(format);
         return Sources.filesBuilder(dirAndGlob.f0())
                       .glob(dirAndGlob.f1())
                       .build(mapFn);
@@ -102,10 +103,8 @@ public class LocalFileSourceFactory implements FileSourceFactory {
 
         String directory;
         String glob = "*";
-        // This might run on the client so it must not touch real filesystem.
-        // If we run this on the machines than different nodes could interpret the path differently
-        // So this is best guess that directories end with /
-        if (path.endsWith("/")) {
+        if (isDirectory(path)) {
+            // The path is the directory and glob is used
             directory = p.toString();
         } else {
             Path parent = p.getParent();
@@ -126,10 +125,18 @@ public class LocalFileSourceFactory implements FileSourceFactory {
         return tuple2(directory, glob);
     }
 
-    @SuppressFBWarnings("OBL_UNSATISFIED_OBLIGATION")
-    private abstract static class AbstractMapFnProvider implements MapFnProvider {
+    private boolean isDirectory(String path) {
+        // We can't touch real filesystem because this code runs on the client when the job is submitted, which is
+        // likely a different machine than the cluster members
 
-        public <T> FunctionEx<Path, Stream<T>> create(FileFormat<T> format) {
+        // So this is a best guess that directories end with /
+        return path.endsWith("/");
+    }
+
+    @SuppressFBWarnings("OBL_UNSATISFIED_OBLIGATION")
+    private abstract static class AbstractReadFileFnProvider implements ReadFileFnProvider {
+
+        public <T> FunctionEx<Path, Stream<T>> createReadFileFn(FileFormat<T> format) {
             FunctionEx<InputStream, Stream<T>> mapInputStreamFn = mapInputStreamFn(format);
             return path -> {
                 FileInputStream fis = new FileInputStream(path.toFile());
@@ -140,7 +147,7 @@ public class LocalFileSourceFactory implements FileSourceFactory {
         abstract <T> FunctionEx<InputStream, Stream<T>> mapInputStreamFn(FileFormat<T> format);
     }
 
-    private static class CsvMapFnProvider extends AbstractMapFnProvider {
+    private static class CsvReadFileFnProvider extends AbstractReadFileFnProvider {
 
         @Override
         <T> FunctionEx<InputStream, Stream<T>> mapInputStreamFn(FileFormat<T> format) {
@@ -165,7 +172,7 @@ public class LocalFileSourceFactory implements FileSourceFactory {
         }
     }
 
-    private static class JsonMapFnProvider extends AbstractMapFnProvider {
+    private static class JsonReadFileFnProvider extends AbstractReadFileFnProvider {
 
         @Override
         <T> FunctionEx<InputStream, Stream<T>> mapInputStreamFn(FileFormat<T> format) {
@@ -186,7 +193,7 @@ public class LocalFileSourceFactory implements FileSourceFactory {
         }
     }
 
-    private static class LinesMapFnProvider extends AbstractMapFnProvider {
+    private static class LinesReadFileFnProvider extends AbstractReadFileFnProvider {
 
         @Override
         <T> FunctionEx<InputStream, Stream<T>> mapInputStreamFn(FileFormat<T> format) {
@@ -205,10 +212,10 @@ public class LocalFileSourceFactory implements FileSourceFactory {
         }
     }
 
-    private static class ParquetMapFnProvider implements MapFnProvider {
+    private static class ParquetReadFileFnProvider implements ReadFileFnProvider {
 
         @Override
-        public <T> FunctionEx<Path, Stream<T>> create(FileFormat<T> format) {
+        public <T> FunctionEx<Path, Stream<T>> createReadFileFn(FileFormat<T> format) {
             throw new UnsupportedOperationException("Reading Parquet files is not supported in local filesystem mode." +
                     " " +
                     "Use Jet Hadoop module with FileSourceBuilder.useHadoopForLocalFiles option instead.");
@@ -220,7 +227,7 @@ public class LocalFileSourceFactory implements FileSourceFactory {
         }
     }
 
-    private static class RawBytesMapFnProvider extends AbstractMapFnProvider {
+    private static class RawBytesReadFileFnProvider extends AbstractReadFileFnProvider {
 
         @Override
         <T> FunctionEx<InputStream, Stream<T>> mapInputStreamFn(FileFormat<T> format) {
@@ -233,7 +240,7 @@ public class LocalFileSourceFactory implements FileSourceFactory {
         }
     }
 
-    private static class TextMapFnProvider extends AbstractMapFnProvider {
+    private static class TextReadFileFnProvider extends AbstractReadFileFnProvider {
 
         @Override
         <T> FunctionEx<InputStream, Stream<T>> mapInputStreamFn(FileFormat<T> format) {

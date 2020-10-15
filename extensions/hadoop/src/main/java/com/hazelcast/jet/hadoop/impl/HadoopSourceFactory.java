@@ -88,7 +88,7 @@ public class HadoopSourceFactory implements FileSourceFactory {
             configurer.configure(job, fileFormat);
 
             Configuration configuration = job.getConfiguration();
-            return HadoopSources.inputFormat(configuration, configurer.projectionFn());
+            return HadoopSources.inputFormat(configuration, (BiFunctionEx<?, ?, T>) configurer.projectionFn());
         } catch (IOException e) {
             throw new JetException("Could not create a source", e);
         }
@@ -121,7 +121,7 @@ public class HadoopSourceFactory implements FileSourceFactory {
          * @return projection function from key-value result into the
          * item emitted from the source
          */
-        <T> BiFunctionEx<?, ?, T> projectionFn();
+        BiFunctionEx<?, ?, ?> projectionFn();
     }
 
     private static class AvroFormatJobConfigurer implements JobConfigurer {
@@ -139,7 +139,7 @@ public class HadoopSourceFactory implements FileSourceFactory {
         }
 
         @Override
-        public <T> BiFunctionEx<AvroKey<T>, NullWritable, T> projectionFn() {
+        public BiFunctionEx<AvroKey<?>, NullWritable, ?> projectionFn() {
             return (k, v) -> k.datum();
         }
     }
@@ -168,7 +168,7 @@ public class HadoopSourceFactory implements FileSourceFactory {
         }
 
         @Override
-        public <T> BiFunctionEx<NullWritable, T, T> projectionFn() {
+        public BiFunctionEx<NullWritable, ?, ?> projectionFn() {
             return (k, v) -> v;
         }
     }
@@ -183,7 +183,7 @@ public class HadoopSourceFactory implements FileSourceFactory {
         }
 
         @Override
-        public <T> BiFunctionEx<LongWritable, T, T> projectionFn() {
+        public BiFunctionEx<LongWritable, ?, ?> projectionFn() {
             return (k, v) -> v;
         }
     }
