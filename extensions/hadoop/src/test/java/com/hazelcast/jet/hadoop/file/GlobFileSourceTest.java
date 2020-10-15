@@ -32,7 +32,7 @@ public class GlobFileSourceTest extends BaseFileFormatTest {
         FileSourceBuilder<String> source = FileSources.files("src/test/resources/glob/file*")
                                                       .withFormat(FileFormat.text());
 
-        assertItemsInSource(source, "file", "file1", "file*");
+        assertItemsInSource(source, "file", "file1");
     }
 
     @Test
