@@ -15,10 +15,10 @@
  */
 package com.hazelcast.jet.python;
 
-import com.hazelcast.internal.nio.IOUtil;
 import com.hazelcast.jet.JetException;
 import com.hazelcast.jet.core.ProcessorSupplier;
 import com.hazelcast.logging.ILogger;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import javax.annotation.Nonnull;
 import java.io.BufferedReader;
@@ -38,6 +38,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 import static com.hazelcast.jet.impl.util.IOUtil.copyStream;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -73,17 +74,14 @@ class PythonServiceContext {
     private static final Object INIT_LOCK = new Object();
 
     private final ILogger logger;
-
-    private Path runtimeBaseDir;
+    private final Path runtimeBaseDir;
 
     PythonServiceContext(ProcessorSupplier.Context context, PythonServiceConfig cfg) {
         logger = context.jetInstance().getHazelcastInstance().getLoggingService()
                         .getLogger(getClass().getPackage().getName());
         try {
             long start = System.nanoTime();
-            runtimeBaseDir = cfg.baseDir() != null
-                    ? context.attachedDirectory(cfg.baseDir().toString()).toPath()
-                    : context.attachedFile(cfg.handlerFile().toString()).toPath().getParent();
+            runtimeBaseDir = runtimeBaseDir(context, cfg);
             setupBaseDir(cfg);
             synchronized (INIT_LOCK) {
                 // synchronized: the script will run pip which is not concurrency-safe
@@ -113,6 +111,18 @@ class PythonServiceContext {
         }
     }
 
+    Path runtimeBaseDir(ProcessorSupplier.Context context, PythonServiceConfig cfg) {
+        File baseDir = cfg.baseDir();
+        if (baseDir != null) {
+            return context.attachedDirectory(baseDir.toString()).toPath();
+        }
+        File handlerFile = cfg.handlerFile();
+        if (handlerFile != null) {
+            return context.attachedFile(handlerFile.toString()).toPath().getParent();
+        }
+        throw new IllegalArgumentException("Either base directory or handler file should be configured");
+    }
+
     void destroy() {
         File runtimeBaseDirF = runtimeBaseDir.toFile();
         try {
@@ -131,8 +141,6 @@ class PythonServiceContext {
             }
         } catch (Exception e) {
             throw new JetException("PythonService cleanup failed: " + e, e);
-        } finally {
-            IOUtil.delete(runtimeBaseDir);
         }
     }
 
@@ -238,20 +246,23 @@ class PythonServiceContext {
         }
     }
 
+    @SuppressFBWarnings(value = "RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE",
+            justification = "https://github.com/spotbugs/spotbugs/issues/756")
     private void editPermissionsRecursively(
             @Nonnull Path basePath,
             @Nonnull String chmodOp,
             @Nonnull Predicate<? super Set<PosixFilePermission>> editFn
     ) throws IOException {
         List<String> filesNotMarked = new ArrayList<>();
-        Files.walk(basePath).forEach(path -> {
-            try {
-                editPermissions(path, editFn);
-            } catch (Exception e) {
-                filesNotMarked.add(basePath.relativize(path).toString());
-            }
-
-        });
+        try (Stream<Path> walk = Files.walk(basePath)) {
+            walk.forEach(path -> {
+                try {
+                    editPermissions(path, editFn);
+                } catch (Exception e) {
+                    filesNotMarked.add(basePath.relativize(path).toString());
+                }
+            });
+        }
         if (!filesNotMarked.isEmpty()) {
             logger.info("Couldn't 'chmod " + chmodOp + "' these files: " + filesNotMarked);
         }

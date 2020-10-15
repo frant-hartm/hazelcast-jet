@@ -59,7 +59,7 @@ public class EdgeDef implements IdentifiedDataSerializable {
         this.routingPolicy = edge.getRoutingPolicy();
         this.partitioner = edge.getPartitioner();
         this.config = config;
-        this.comparator = edge.getComparator();
+        this.comparator = edge.getOrderComparator();
     }
 
     void initTransientFields(Map<Integer, VertexDef> vMap, VertexDef nearVertex, boolean isOutbound) {
@@ -118,7 +118,7 @@ public class EdgeDef implements IdentifiedDataSerializable {
         return config;
     }
 
-    ComparatorEx<?> getComparator() {
+    ComparatorEx<?> getOrderComparator() {
         return comparator;
     }
 
@@ -141,11 +141,11 @@ public class EdgeDef implements IdentifiedDataSerializable {
         out.writeInt(destOrdinal);
         out.writeInt(sourceOrdinal);
         out.writeInt(priority);
-        out.writeObject(comparator);
         out.writeObject(distributedTo);
         out.writeObject(routingPolicy);
-        CustomClassLoadedObject.write(out, partitioner);
         out.writeObject(config);
+        CustomClassLoadedObject.write(out, partitioner);
+        CustomClassLoadedObject.write(out, comparator);
     }
 
     @Override
@@ -154,11 +154,11 @@ public class EdgeDef implements IdentifiedDataSerializable {
         destOrdinal = in.readInt();
         sourceOrdinal = in.readInt();
         priority = in.readInt();
-        comparator = in.readObject();
         distributedTo = in.readObject();
         routingPolicy = in.readObject();
-        partitioner = CustomClassLoadedObject.read(in);
         config = in.readObject();
+        partitioner = CustomClassLoadedObject.read(in);
+        comparator = CustomClassLoadedObject.read(in);
     }
 
     @Override public String toString() {
