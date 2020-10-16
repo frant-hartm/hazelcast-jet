@@ -143,6 +143,7 @@ BSD 3-Clause License
   ANTLR 4 Runtime:4.7.2
 CC0
   reactive-streams:1.0.2
+CDDL
 EPL 2.0
   javax.ws.rs-api:2.1.1
 GNU General Public License, version 2 (GPL2), with the classpath exception
