@@ -160,3 +160,28 @@ The main difference in how SQL would use the connector is that it
 expects `Object[]` as return type.
 
 We need to provide a way to configure each format as such.
+
+= Licensing
+
+We had to add couple of aliases for apache 2, BSD, new/revised BSD,
+nothing new
+
+What's new is:
+
+* "The Go license" - this is permissive BSD style license,
+[link](https://golang.org/LICENSE)
+
+* CDDL (1.0) - Common Development and Distribution License - this is
+a weak copyleft license, based on mozilla public license and its
+variants
+
+** CDDL 1.1 (minor update, something with patents and EU law)
+** CDDL + GPLv2 with classpath exception - this is just dual CDDL
+1.0 + GPLv2 license
+
+All the CDDL libs are transitive dependencies of hadoop-common, which
+we plan to package in the all deps included file connectors jars for
+s3/gcp/azure.
+
+Many commercial applications use CDDL dependencies (e.g. Spring
+framework has many modules with transitive dependencies under CDDL)
