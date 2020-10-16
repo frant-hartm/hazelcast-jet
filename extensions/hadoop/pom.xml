@@ -112,71 +112,6 @@
             </plugin>
 
         </plugins>
-
-<!--
-        <pluginManagement>
-            <plugins>
-                &lt;!&ndash; This maven-shade-plugin is used in profiles, which differ by the used Hadoop version &ndash;&gt;
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-shade-plugin</artifactId>
-                    <executions>
-                        <execution>
-                            <phase>package</phase>
-                            <goals>
-                                <goal>shade</goal>
-                            </goals>
-                        </execution>
-                        <execution>
-                            <id>hadoop</id>
-                            <phase>package</phase>
-                            <goals>
-                                <goal>shade</goal>
-                            </goals>
-                            <configuration>
-                                <shadedClassifierName>hadoop</shadedClassifierName>
-                                <artifactSet>
-                                    <includes>
-                                        <include>org.apache.hadoop:*</include>
-                                    </includes>
-                                </artifactSet>
-                            </configuration>
-                        </execution>
-                    </executions>
-                    <configuration>
-                        <finalName>${project.name}-with-${hadoop.version}-${project.version}</finalName>
-                        <createSourcesJar>true</createSourcesJar>
-                        <shadeSourcesContent>true</shadeSourcesContent>
-                        <createDependencyReducedPom>true</createDependencyReducedPom>
-                        <shadedArtifactAttached>true</shadedArtifactAttached>
-                        <shadedClassifierName>with-${hadoop.version}</shadedClassifierName>
-                        &lt;!&ndash;
-                        We actually don't shade these in here in Hadoop module, they are already part of core
-                        But we need to relocate the usage in the Hadoop module
-                        &ndash;&gt;
-                        <relocations>
-                            <relocation>
-                                <pattern>com.fasterxml.jackson.core</pattern>
-                                <shadedPattern>com.hazelcast.com.fasterxml.jackson.core</shadedPattern>
-                            </relocation>
-                            <relocation>
-                                <pattern>com.fasterxml.jackson.databind</pattern>
-                                <shadedPattern>com.hazelcast.com.fasterxml.jackson.databind</shadedPattern>
-                            </relocation>
-                            <relocation>
-                                <pattern>com.fasterxml.jackson.dataformat</pattern>
-                                <shadedPattern>com.hazelcast.com.fasterxml.jackson.dataformat</shadedPattern>
-                            </relocation>
-                        </relocations>
-                        <transformers>
-                            <transformer
-                                implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
-                        </transformers>
-                    </configuration>
-                </plugin>
-            </plugins>
-        </pluginManagement>
--->
     </build>
 
     <dependencies>
@@ -184,26 +119,40 @@
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-hdfs-client</artifactId>
             <version>${hadoop.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-common</artifactId>
+            <artifactId>hadoop-client</artifactId>
             <version>${hadoop.version}</version>
+            <scope>provided</scope>
         </dependency>
+
+        <!-- Needed to add guava after changing hadoop-common to hadoop-client -->
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>28.2-jre</version>
+            <scope>provided</scope>
+        </dependency>
+
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-mapreduce-client-core</artifactId>
             <version>${hadoop.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.avro</groupId>
             <artifactId>avro</artifactId>
             <version>${avro.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.avro</groupId>
             <artifactId>avro-mapred</artifactId>
             <version>${avro.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <!-- TODO this module has lot's of duplicated classes? maybe it's not needed/or some slimmer module is enough? -->
@@ -211,11 +160,13 @@
             <groupId>org.apache.parquet</groupId>
             <artifactId>parquet-hadoop-bundle</artifactId>
             <version>${parquet.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.parquet</groupId>
             <artifactId>parquet-avro</artifactId>
             <version>${parquet.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <!-- Hadoop brings in jackson 2.8, our jackson support expects 2.10 if present at all -->
@@ -223,6 +174,7 @@
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <version>${jackson.jr.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
@@ -238,37 +190,4 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
-    <profiles>
-        <profile>
-            <id>with-2.10</id>
-            <properties>
-                <!-- hadoop.version=2.10. is the default-->
-                <hadoop.scope>compile</hadoop.scope>
-            </properties>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-shade-plugin</artifactId>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-        <profile>
-            <id>with-3.2</id>
-            <properties>
-                <hadoop.version>3.2.1</hadoop.version>
-                <hadoop.scope>compile</hadoop.scope>
-            </properties>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-shade-plugin</artifactId>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 </project>
