@@ -68,12 +68,6 @@
             </exclusions>
         </dependency>
 
-        <dependency>
-            <groupId>org.apache.calcite</groupId>
-            <artifactId>calcite-core</artifactId>
-            <version>1.23.0</version>
-        </dependency>
-
         <!-- TODO: json & json libs part of sql by default ??? -->
         <!-- TODO: how to package i.e. Kafka ??? -->
 
