@@ -25,6 +25,7 @@ data: {
       "com.hazelcast.jet.sql.impl.parse.SqlAlterJob"
       "com.hazelcast.jet.sql.impl.parse.SqlCreateMapping"
       "com.hazelcast.jet.sql.impl.parse.SqlCreateJob"
+      "com.hazelcast.jet.sql.impl.parse.SqlCreateFunction"
       "com.hazelcast.jet.sql.impl.parse.SqlCreateSnapshot"
       "com.hazelcast.jet.sql.impl.parse.SqlDataType"
       "com.hazelcast.jet.sql.impl.parse.SqlDropMapping"
@@ -369,6 +370,7 @@ data: {
       # added by Hazelcast
       "EXTERNAL"
       "JOB"
+      "FUNCTION"
       "MAPPING"
       "SINK"
       "SUSPEND"
@@ -428,6 +430,7 @@ data: {
     createStatementParserMethods: [
       "SqlCreateMapping"
       "SqlCreateJob"
+      "SqlCreateFunction"
       "SqlCreateSnapshot"
     ]
 

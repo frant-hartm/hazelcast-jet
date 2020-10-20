@@ -40,55 +40,21 @@ public class CustomFunctionTest extends SqlTestSupport{
     }
 
     @Test
-    public void name() {
+    public void defineFunctionAndExecute() {
         String name = randomName();
         sqlService.execute(javaSerializableMapDdl(name, Integer.class, String.class));
 
         sqlService.execute("SINK INTO " + name + " (__key, this) VALUES (1, 'Alice')");
 
-        sqlService.execute("CREATE FUNCTION customFn(VARCHAR) RETURNS varchar AS ' ' LANGUAGE KOTLIN");
-
-        registerCustomFn("customFn", (param) -> "Custom: " + param);
+        sqlService.execute("CREATE FUNCTION saySomething(VARCHAR) RETURNS varchar AS 'fun myFunc(name: String) : String {   return name + \" says kotlin rocks\" }myFunc(param)' LANGUAGE 'KOTLIN'");
 
         assertRowsAnyOrder(
-                "SELECT customFn(this) FROM " + name,
+                "SELECT saySomething(this) FROM " + name,
                 asList(
-                        new Row("Custom: Alice")
+                        new Row("Alice says kotlin rocks")
                 )
         );
 
-    }
-
-    private static void registerCustomFn(String name, FunctionEx<String, String> functionEx) {
-        RelDataTypeFactory typeFactory = HazelcastTypeFactory.INSTANCE;
-
-        List<RelDataType> types = new ArrayList<>();
-        List<SqlTypeFamily> families = new ArrayList<>();
-
-        CallFunction function = new CallFunction(functionEx);
-        for (FunctionParameter parameter : function.getParameters()) {
-            RelDataType type = parameter.getType(typeFactory);
-            assert type.getSqlTypeName().getFamily() == CHARACTER;
-
-            types.add(type);
-            families.add(Util.first(type.getSqlTypeName().getFamily(), SqlTypeFamily.ANY));
-        }
-
-        FamilyOperandTypeChecker typeChecker = OperandTypes.family(families, index -> true);
-        SqlUserDefinedFunction fn = new SqlUserDefinedFunction(new SqlIdentifier(name, SqlParserPos.ZERO),
-                ReturnTypes.VARCHAR_2000,
-                InferTypes.explicit(Collections.emptyList()),
-                typeChecker,
-                types,
-                function
-        );
-
-        HazelcastSqlOperatorTable.instance().register(
-                fn
-        );
-
-        UnsupportedOperationVisitor.SUPPORTED_OPERATORS.add(fn);
-        UnsupportedOperationVisitor.SUPPORTED_KINDS.add(fn.getKind());
     }
 
 }

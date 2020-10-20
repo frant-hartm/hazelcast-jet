@@ -269,6 +269,40 @@ SqlCreate SqlCreateJob(Span span, boolean replace) :
 }
 
 /**
+ * Parses CREATE FUNCTION statement.
+ */
+SqlCreate SqlCreateFunction(Span span, boolean replace) :
+{
+    SqlParserPos startPos = span.pos();
+
+    SqlIdentifier name;
+    SqlDataTypeSpec inputType;
+    SqlDataTypeSpec type;
+    SqlNode script;
+    SqlNode language;
+}
+{
+    <FUNCTION>
+    name = CompoundIdentifier()
+    <LPAREN> inputType = DataType() <RPAREN>
+    <RETURNS>
+    type = DataType()
+    <AS>
+    script = StringLiteral()
+    <LANGUAGE>
+    language = StringLiteral()
+    {
+        return new SqlCreateFunction(
+            name,
+            inputType,
+            type,
+            script,
+            language
+        );
+    }
+}
+
+/**
  * Parses ALTER JOB statement.
  */
 SqlAlterJob SqlAlterJob() :

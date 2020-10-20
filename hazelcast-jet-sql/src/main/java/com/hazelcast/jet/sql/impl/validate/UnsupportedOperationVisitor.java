@@ -17,6 +17,7 @@
 package com.hazelcast.jet.sql.impl.validate;
 
 import com.hazelcast.jet.sql.impl.parse.SqlAlterJob;
+import com.hazelcast.jet.sql.impl.parse.SqlCreateFunction;
 import com.hazelcast.jet.sql.impl.parse.SqlCreateJob;
 import com.hazelcast.jet.sql.impl.parse.SqlCreateSnapshot;
 import com.hazelcast.jet.sql.impl.parse.SqlDropJob;
@@ -349,6 +350,7 @@ public final class UnsupportedOperationVisitor implements SqlVisitor<Void> {
 
     private void processOtherDdl(SqlCall call) {
         if (!(call instanceof SqlCreateJob)
+                && !(call instanceof SqlCreateFunction)
                 && !(call instanceof SqlDropJob)
                 && !(call instanceof SqlAlterJob)
                 && !(call instanceof SqlCreateSnapshot)

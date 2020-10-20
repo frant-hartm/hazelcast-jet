@@ -57,8 +57,10 @@ import com.hazelcast.sql.impl.QueryUtils;
 import com.hazelcast.sql.impl.SqlResultImpl;
 import com.hazelcast.sql.impl.calcite.OptimizerContext;
 import com.hazelcast.sql.impl.calcite.SqlBackend;
+import com.hazelcast.sql.impl.calcite.opt.physical.visitor.KotlinFunction;
 import com.hazelcast.sql.impl.calcite.parse.QueryConvertResult;
 import com.hazelcast.sql.impl.calcite.parse.QueryParseResult;
+import com.hazelcast.sql.impl.calcite.validate.HazelcastSqlOperatorTable;
 import com.hazelcast.sql.impl.calcite.validate.types.HazelcastTypeFactory;
 import com.hazelcast.sql.impl.optimizer.OptimizationTask;
 import com.hazelcast.sql.impl.optimizer.SqlPlan;
@@ -71,19 +73,34 @@ import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.RelVisitor;
 import org.apache.calcite.rel.core.TableModify;
 import org.apache.calcite.rel.core.TableScan;
+import org.apache.calcite.rel.type.RelDataType;
+import org.apache.calcite.rel.type.RelDataTypeFactory;
+import org.apache.calcite.schema.FunctionParameter;
+import org.apache.calcite.sql.SqlCharStringLiteral;
+import org.apache.calcite.sql.SqlIdentifier;
 import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.parser.SqlParserImplFactory;
+import org.apache.calcite.sql.parser.SqlParserPos;
+import org.apache.calcite.sql.type.FamilyOperandTypeChecker;
+import org.apache.calcite.sql.type.InferTypes;
+import org.apache.calcite.sql.type.OperandTypes;
+import org.apache.calcite.sql.type.ReturnTypes;
+import org.apache.calcite.sql.type.SqlTypeFamily;
 import org.apache.calcite.sql.util.SqlVisitor;
 import org.apache.calcite.sql.validate.SqlConformance;
+import org.apache.calcite.sql.validate.SqlUserDefinedFunction;
 import org.apache.calcite.sql.validate.SqlValidator;
 import org.apache.calcite.sql2rel.SqlRexConvertletTable;
 import org.apache.calcite.sql2rel.SqlToRelConverter;
 import org.apache.calcite.sql2rel.SqlToRelConverter.Config;
+import org.apache.calcite.util.Util;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
+import static org.apache.calcite.sql.type.SqlTypeFamily.CHARACTER;
 
 class JetSqlBackend implements SqlBackend {
 
@@ -168,17 +185,7 @@ class JetSqlBackend implements SqlBackend {
     }
 
     private SqlPlan toCreateFunctionPlan(SqlCreateFunction node) {
-        return new JetPlan() {
-
-            @Override
-            public SqlResult execute() {
-
-
-
-
-                return SqlResultImpl.createUpdateCountResult(0);
-            }
-        };
+        return new CreateFunctionPlan(node);
     }
 
     private SqlPlan toCreateMappingPlan(SqlCreateMapping sqlCreateMapping) {
@@ -324,4 +331,53 @@ class JetSqlBackend implements SqlBackend {
         physicalRel.visit(visitor);
         return visitor.getDag();
     }
+
+    private static class CreateFunctionPlan implements JetPlan {
+
+        private final SqlCreateFunction node;
+
+        public CreateFunctionPlan(SqlCreateFunction node) {
+            this.node = node;
+        }
+
+        @Override
+        public SqlResult execute() {
+
+            RelDataTypeFactory typeFactory = HazelcastTypeFactory.INSTANCE;
+
+            List<RelDataType> types = new ArrayList<>();
+            List<SqlTypeFamily> families = new ArrayList<>();
+
+            String name = (node.getName()).getSimple();
+            String script = ((SqlCharStringLiteral) node.getScript()).toValue();
+
+            KotlinFunction function = new KotlinFunction(script);
+            for (FunctionParameter parameter : function.getParameters()) {
+                RelDataType type = parameter.getType(typeFactory);
+                assert type.getSqlTypeName().getFamily() == CHARACTER;
+
+                types.add(type);
+                families.add(Util.first(type.getSqlTypeName().getFamily(), SqlTypeFamily.ANY));
+            }
+
+            FamilyOperandTypeChecker typeChecker = OperandTypes.family(families, index -> true);
+            SqlUserDefinedFunction fn = new SqlUserDefinedFunction(node.getName(),
+                    ReturnTypes.VARCHAR_2000,
+                    InferTypes.explicit(Collections.emptyList()),
+                    typeChecker,
+                    types,
+                    function
+            );
+
+            HazelcastSqlOperatorTable.instance().register(
+                    fn
+            );
+
+            com.hazelcast.sql.impl.calcite.parse.UnsupportedOperationVisitor.SUPPORTED_OPERATORS.add(fn);
+            com.hazelcast.sql.impl.calcite.parse.UnsupportedOperationVisitor.SUPPORTED_KINDS.add(fn.getKind());
+
+            return SqlResultImpl.createUpdateCountResult(0);
+        }
+    }
+
 }
