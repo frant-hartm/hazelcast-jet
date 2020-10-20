@@ -41,7 +41,7 @@ for module in "${MODULES[@]}"; do
     fi
 done
 
-CLASSPATH="$JET_HOME/lib:$JET_HOME/lib/*:$CLASSPATH"
+CLASSPATH="$JET_HOME/kotlin/*:$JET_HOME/lib:$JET_HOME/lib/*:$CLASSPATH"
 
 function readJvmOptionsFile {
     # Read jvm.options file

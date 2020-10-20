@@ -28,12 +28,23 @@
             <useProjectArtifact>false</useProjectArtifact>
             <includes>
                 <include>com.hazelcast.jet:hazelcast-jet</include>
+                <include>com.hazelcast.jet:hazelcast-jet-sql</include>
                 <include>org.apache.logging.log4j:*</include>
                 <include>org.slf4j:*</include>
                 <include>io.prometheus.jmx:jmx_prometheus_javaagent</include>
             </includes>
             <outputDirectory>lib</outputDirectory>
             <outputFileNameMapping>${artifact.artifactId}-${artifact.baseVersion}.${artifact.extension}</outputFileNameMapping>
+        </dependencySet>
+        <dependencySet>
+            <useProjectArtifact>false</useProjectArtifact>
+            <includes>
+                <include>org.jetbrains.kotlin:kotlin-scripting-jsr223</include>
+            </includes>
+            <outputDirectory>kotlin</outputDirectory>
+            <outputFileNameMapping>${artifact.artifactId}-${artifact.baseVersion}.${artifact.extension}</outputFileNameMapping>
+            <useTransitiveDependencies>true</useTransitiveDependencies>
+            <useTransitiveFiltering>true</useTransitiveFiltering>
         </dependencySet>
         <dependencySet>
             <useProjectArtifact>false</useProjectArtifact>
