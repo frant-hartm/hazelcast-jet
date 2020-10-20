@@ -35,6 +35,7 @@ import com.hazelcast.jet.sql.impl.opt.physical.PhysicalRel;
 import com.hazelcast.jet.sql.impl.opt.physical.PhysicalRules;
 import com.hazelcast.jet.sql.impl.opt.physical.visitor.CreateDagVisitor;
 import com.hazelcast.jet.sql.impl.parse.SqlAlterJob;
+import com.hazelcast.jet.sql.impl.parse.SqlCreateFunction;
 import com.hazelcast.jet.sql.impl.parse.SqlCreateJob;
 import com.hazelcast.jet.sql.impl.parse.SqlCreateMapping;
 import com.hazelcast.jet.sql.impl.parse.SqlCreateSnapshot;
@@ -49,9 +50,11 @@ import com.hazelcast.jet.sql.impl.validate.UnsupportedOperationVisitor;
 import com.hazelcast.logging.ILogger;
 import com.hazelcast.spi.impl.NodeEngine;
 import com.hazelcast.sql.SqlColumnMetadata;
+import com.hazelcast.sql.SqlResult;
 import com.hazelcast.sql.SqlRowMetadata;
 import com.hazelcast.sql.impl.QueryId;
 import com.hazelcast.sql.impl.QueryUtils;
+import com.hazelcast.sql.impl.SqlResultImpl;
 import com.hazelcast.sql.impl.calcite.OptimizerContext;
 import com.hazelcast.sql.impl.calcite.SqlBackend;
 import com.hazelcast.sql.impl.calcite.parse.QueryConvertResult;
@@ -156,10 +159,26 @@ class JetSqlBackend implements SqlBackend {
             return toCreateSnapshotPlan((SqlCreateSnapshot) node);
         } else if (node instanceof SqlDropSnapshot) {
             return toDropSnapshotPlan((SqlDropSnapshot) node);
+        } else if (node instanceof SqlCreateFunction) {
+            return toCreateFunctionPlan((SqlCreateFunction) node);
         } else {
             QueryConvertResult convertResult = context.convert(parseResult);
             return toPlan(convertResult.getRel(), convertResult.getFieldNames(), context);
         }
+    }
+
+    private SqlPlan toCreateFunctionPlan(SqlCreateFunction node) {
+        return new JetPlan() {
+
+            @Override
+            public SqlResult execute() {
+
+
+
+
+                return SqlResultImpl.createUpdateCountResult(0);
+            }
+        };
     }
 
     private SqlPlan toCreateMappingPlan(SqlCreateMapping sqlCreateMapping) {
