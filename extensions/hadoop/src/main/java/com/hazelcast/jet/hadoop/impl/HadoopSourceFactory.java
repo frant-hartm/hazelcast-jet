@@ -49,6 +49,7 @@ import org.apache.parquet.avro.AvroParquetInputFormat;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import static com.hazelcast.jet.hadoop.impl.CsvInputFormat.CSV_INPUT_FORMAT_BEAN_CLASS;
 import static com.hazelcast.jet.hadoop.impl.JsonInputFormat.JSON_INPUT_FORMAT_BEAN_CLASS;
@@ -81,13 +82,18 @@ public class HadoopSourceFactory implements FileSourceFactory {
 
         try {
             Job job = Job.getInstance();
+
+            Configuration configuration = job.getConfiguration();
+            for (Entry<String, String> option : builder.options().entrySet()) {
+                configuration.set(option.getKey(), option.getValue());
+            }
+
             FileInputFormat.addInputPath(job, new Path(builder.path()));
 
             FileFormat<T> fileFormat = requireNonNull(builder.format());
             JobConfigurer configurer = configs.get(fileFormat.format());
             configurer.configure(job, fileFormat);
 
-            Configuration configuration = job.getConfiguration();
             return HadoopSources.inputFormat(configuration, (BiFunctionEx<?, ?, T>) configurer.projectionFn());
         } catch (IOException e) {
             throw new JetException("Could not create a source", e);
