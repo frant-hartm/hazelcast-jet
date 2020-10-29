@@ -20,7 +20,6 @@ Copyright (c) 2008-2020 Hazelcast, Inc. All rights reserved.
 This product includes the following libraries with the following licenses:
 
 Apache License, Version 2.0
-  AWS SDK for Java - Bundle:1.11.375
   Jackson-annotations:2.9.8
   Jackson-core:2.11.2
   jackson-databind:2.9.8
@@ -29,24 +28,68 @@ Apache License, Version 2.0
   Jackson module: JAXB Annotations:2.9.8
   Woodstox:5.0.3
   JCIP Annotations under Apache License:1.0-1
+  Google Android Annotations Library:4.1.1.4
+  Google APIs Client Library for Java:1.30.10
+  Jackson 2 extensions to the Google APIs Client Library for Java:1.30.10
+  Java 6 (and higher) Extensions to the Google API Client Library for Java.:1.30.10
+  proto-google-common-protos:1.18.1
+  proto-google-iam-v1:0.13.0
+  IAM Service Account Credentials API v1-rev20200821-1.30.10:v1-rev20200821-1.30.10
+  Cloud Storage JSON API v1-rev20200814-1.30.10:v1-rev20200814-1.30.10
+  AutoValue Annotations:1.7.4
+  gcs-connector-hadoop3:hadoop3-2.1.5
+  gcsio:2.1.5
+  util:2.1.5
+  util-hadoop-hadoop3:hadoop3-2.1.5
   FindBugs-jsr305:3.0.0
   Gson:2.2.4
-  Guava: Google Core Libraries for Java:15.0
+  error-prone annotations:2.3.4
+  Flogger:0.5.1
+  Flogger SLF4J Backend:0.5.1
+  Flogger System Backend:0.5.1
+  Google Logger:0.5.1
+  Guava InternalFutureFailureAccess and InternalFutures:1.0.1
+  Guava: Google Core Libraries for Java:29.0-jre
+  Guava ListenableFuture only:9999.0-empty-to-avoid-conflict-with-guava
+  Google HTTP Client Library for Java:1.35.0
+  Jackson 2 extensions to the Google HTTP Client Library for Java.:1.36.0
+  J2ObjC Annotations:1.3
+  Google OAuth Client Library for Java:1.31.0
+  Java 6 (and higher) extensions to the Google OAuth Client Library for Java.:1.31.0
   Nimbus JOSE+JWT:4.41.1
   OkHttp:2.7.5
   Okio:1.6.0
   Apache Commons BeanUtils:1.9.3
   Commons CLI:1.2
-  Apache Commons Codec:1.11
+  Apache Commons Codec:1.9
   Apache Commons Collections:3.2.2
   Apache Commons IO:2.5
+  Commons Lang:2.4
   Commons Logging:1.1.3
   Apache Commons Net:3.6
+  Commons Pool:1.6
+  io.grpc:grpc-alts:1.32.1
+  io.grpc:grpc-api:1.32.1
+  io.grpc:grpc-auth:1.32.1
+  io.grpc:grpc-context:1.22.1
+  io.grpc:grpc-core:1.32.1
+  io.grpc:grpc-grpclb:1.32.1
+  io.grpc:grpc-netty-shaded:1.32.1
+  io.grpc:grpc-protobuf:1.32.1
+  io.grpc:grpc-protobuf-lite:1.32.1
+  io.grpc:grpc-stub:1.32.1
+  The Netty Project:3.5.13.Final
+  OpenCensus:0.24.0
+  OpenCensus:0.24.0
+  perfmark:perfmark-api:0.19.0
+  fastutil:7.0.13
   Apache Log4j:1.2.17
   ASM based accessors helper used by json-smart:1.2
   JSON Small and Fast Parser:2.3
-  Apache Avro:1.7.7
-  Apache Commons Compress:1.18
+  Apache Avro:1.8.2
+  Apache Avro IPC:1.8.2
+  Apache Avro Mapred API:1.8.2
+  Apache Commons Compress:1.8.1
   Apache Commons Configuration:2.1.1
   Apache Commons Lang:3.7
   Commons Math:3.1.1
@@ -56,7 +99,6 @@ Apache License, Version 2.0
   Curator Recipes:2.13.0
   Apache Hadoop Annotations:3.2.1
   Apache Hadoop Auth:3.2.1
-  Apache Hadoop Amazon Web Services support:3.2.1
   Apache Hadoop Client Aggregator:3.2.1
   Apache Hadoop Common:3.2.1
   Apache Hadoop HDFS Client:3.2.1
@@ -84,19 +126,36 @@ Apache License, Version 2.0
   Kerby Util:1.0.1
   Kerby XDR Project:1.0.1
   Token provider:1.0.1
+  Apache Parquet Avro:1.10.1
+  Apache Parquet Column:1.10.1
+  Apache Parquet Common:1.10.1
+  Apache Parquet Encodings:1.10.1
+  Apache Parquet Format:2.4.0
+  Apache Parquet Hadoop:1.10.1
+  Apache Parquet Jackson:1.10.1
+  Apache Velocity:1.7
   Jackson:1.9.13
   Data Mapper for Jackson:1.9.13
+  org.conscrypt:conscrypt-openjdk-uber:2.2.1
   Jetty :: Utilities:9.3.24.v20180605
-  Snappy for Java:1.0.5
+  Jetty Server:6.1.26
+  Jetty Utilities:6.1.26
+  Servlet Specification API:2.5-20081211
+  snappy-java:1.1.1.3
 BSD 2-Clause License
   dnsjava:2.1.7
 BSD 3-Clause License
+  API Common:1.8.1
+  Google Auth Library for Java - Credentials:0.21.1
+  Google Auth Library for Java - OAuth2 HTTP:0.21.1
   Protocol Buffer Java API:2.5.0
-  ParaNamer Core:2.3
+  Protocol Buffers [Util]:3.13.0
+  ParaNamer Core:2.7
   Stax2 API:3.1.4
   ASM Core:5.0.4
 CC0
 CDDL
+  javax.annotation API:1.3.2
   Java Servlet API:3.1.0
   jsr311-api:1.1.1
 CDDL 1.1
@@ -105,12 +164,21 @@ CDDL 1.1
   Java Architecture for XML Binding:2.2.11
 Eclipse Public License - Version 1.0
   Jetty :: Utilities:9.3.24.v20180605
+  Jetty Server:6.1.26
+  Jetty Utilities:6.1.26
+GNU General Public License, version 2 (GPL2), with the classpath exception
+  Checker Qual:2.5.3
 GPL2 w/ CPE
   jersey-client:1.19
   jersey-core:1.19
   Java Architecture for XML Binding:2.2.11
 MIT License
-  SLF4J API Module:1.7.25
+  Checker Qual:2.5.3
+  Checker Qual:2.11.1
+  Animal Sniffer Annotations:1.18
+  SLF4J API Module:1.7.7
+Public Domain
+  XZ for Java:1.5
 The Go license
   re2j:1.1
 

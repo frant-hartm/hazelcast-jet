@@ -43,7 +43,8 @@
         <module>grpc</module>
         <module>hadoop</module>
         <module>hadoop-dist/hadoop-all</module>
-        <module>hadoop-dist/hadoop-s3</module>
+        <module>hadoop-dist/files-gcs</module>
+        <module>hadoop-dist/files-s3</module>
         <module>kafka</module>
         <module>protobuf</module>
         <module>python</module>
