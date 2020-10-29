@@ -108,7 +108,6 @@
             <artifactId>hazelcast-jet-hadoop</artifactId>
             <version>4.4-SNAPSHOT</version>
         </dependency>
-        <!-- Amazon S3 -->
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-client</artifactId>
@@ -146,6 +145,12 @@
             <groupId>org.apache.parquet</groupId>
             <artifactId>parquet-avro</artifactId>
             <version>${parquet.version}</version>
+        </dependency>
+        <!-- Amazon S3 -->
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-aws</artifactId>
+            <version>${hadoop.version}</version>
         </dependency>
     </dependencies>
 </project>
