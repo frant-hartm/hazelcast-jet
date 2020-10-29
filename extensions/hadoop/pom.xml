@@ -81,9 +81,9 @@
                     <shadedArtifactAttached>true</shadedArtifactAttached>
                     <shadedClassifierName>with-${hadoop.version}</shadedClassifierName>
                     <artifactSet>
-                        <includes>
+                        <!--<includes>
                             <include>com.hazelcast.jet:hazelcast-jet-hadoop</include>
-                        </includes>
+                        </includes>-->
 
                     </artifactSet>
                     <!--

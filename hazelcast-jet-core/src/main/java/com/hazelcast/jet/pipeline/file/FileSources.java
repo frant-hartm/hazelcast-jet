@@ -30,8 +30,24 @@ public final class FileSources {
     }
 
     /**
-     * Helper class to create a {@link FileSourceBuilder}
+     * The main entrypoint to the Unified File Connector
      * <p>
+     * Returns a {@link FileSourceBuilder} configured with LinesTextFileFormat
+     * - each line of the file is emitted from the source as a single String.
+     *<pre>{@code
+     * Pipeline p = Pipeline.create();
+     * p.readFrom(FileSources.files("src/main/java"))
+     *  .map(line -> LogParser.parse(line))
+     *  .filter(log -> log.level().equals("ERROR"))
+     *  .writeTo(Sinks.logger());}</pre>
+     *
+     * You can override the format by calling {@link FileSourceBuilder#withFormat(FileFormat)} method.
+     * For example:
+     * <pre>{@code
+     * BatchSource<byte[]> source = FileSources.files("path/to/binary/file")
+     *                                         .build();
+     * }</pre>
+     *
      * Usage:
      * <pre>{@code
      * BatchSource<byte[]> source = FileSources.files("path/to/binary/file")

@@ -6,6 +6,37 @@ description: Birds-eye view of all pre-defined sources available in Jet.
 Hazelcast Jet comes out of the box with many different sources and sinks
 that you can work with, that are also referred to as _connectors_.
 
+### Unified File Connector API
+
+>This section describes the File Connector API introduced in Hazelcast
+>Jet 4.4. As of 4.4, the API provides source capability only. For sinks,
+>see the [Files](#files) section.
+
+The Unified File Connector API provides a simple way to read files,
+unified across different sources of the data, such as local filesystem,
+cloud object storage such as Amazon S3 or Google Cloud Storage, etc.), and
+different formats of the data - text files, CSV, Json, Avro, etc.
+
+### The source
+
+Hazelcast Jet supports the following sources:
+
+* Local Filesystem (both shared and local to the member)
+* Hadoop Distributed File System (HDFS)
+* Amazon S3
+* Google Cloud Storage
+* Azure Cloud Storage
+* Azure Data Lake
+
+Support for the local filesystem is included in the base distribution of
+Hazelcast Jet.  To access Hadoop or any of the cloud based stores use
+the separately downloadable Hadoop module in the _Additional Modules_
+section on the [download page](/download).
+
+#### Source options
+
+### The format
+
 ## Files
 
 File sources generally involve reading a set of (as in "multiple") files

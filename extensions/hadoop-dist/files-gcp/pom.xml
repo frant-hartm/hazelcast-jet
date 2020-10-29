@@ -67,13 +67,7 @@
                     <shadeSourcesContent>true</shadeSourcesContent>
                     <createDependencyReducedPom>true</createDependencyReducedPom>
                     <shadedArtifactAttached>true</shadedArtifactAttached>
-                    <artifactSet>
-                        <includes>
-                            <include>*</include>
-                        </includes>
-                    </artifactSet>
-
-                    <!--                    <shadedClassifierName>with-${hadoop.version}</shadedClassifierName>-->
+<!--                    <shadedClassifierName>with-${hadoop.version}</shadedClassifierName>-->
                     <!--
                     We actually don't shade these in here in Hadoop module, they are already part of core
                     But we need to relocate the usage in the Hadoop module

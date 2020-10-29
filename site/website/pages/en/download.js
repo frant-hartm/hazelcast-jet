@@ -67,7 +67,7 @@ function Downloads(props) {
               version: <span className="hljs-string">{latest.version}</span>
           </code></pre>
 
-          <h3 id="modules">Additional Modules</h3>
+          <h3 id="modules"><a name="additional_modules">Additional Modules</a></h3>
           <p>In addition to the ones included in the main distribution, Jet also has
           the following modules:
              </p>
