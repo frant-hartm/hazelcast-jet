@@ -67,6 +67,7 @@ Apache License, Version 2.0
   Apache Hadoop Annotations:3.2.1
   Apache Hadoop Auth:3.2.1
   Apache Hadoop Azure support:3.2.1
+  Apache Hadoop Azure Data Lake support:3.2.1
   Apache Hadoop Client Aggregator:3.2.1
   Apache Hadoop Common:3.2.1
   Apache Hadoop HDFS Client:3.2.1
@@ -136,6 +137,7 @@ GPL2 w/ CPE
   jersey-core:1.19
   Java Architecture for XML Binding:2.2.11
 MIT License
+  Azure Data Lake Store - Java client SDK:2.2.9
   Microsoft Azure SDK for Key Vault Core:1.0.0
   Checker Qual:2.5.2
   Animal Sniffer Annotations:1.17
