@@ -70,7 +70,8 @@ public class FileSourceBuilder<T> {
                 "s3a://",   // Amazon S3
                 "hdfs://",  // HDFS
                 "wasbs://", // Azure Cloud Storage
-                "adl://",   // Azure Data Lake
+                "adl://",   // Azure Data Lake Gen 1
+                "abfs://",   // Azure Data Lake Gen 2
                 "gs://"     // Google Cloud Storage
         ));
     }
