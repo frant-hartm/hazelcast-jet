@@ -34,6 +34,7 @@ import com.hazelcast.jet.test.SerialTest;
 import com.hazelcast.test.HazelcastSerialParametersRunnerFactory;
 import com.hazelcast.test.annotation.NightlyTest;
 import org.junit.After;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -105,13 +106,9 @@ public class MySqlCdcNetworkIntegrationTest extends AbstractCdcIntegrationTest {
     }
 
     @Before
-    public void before() {
-        //disable Testcontainer's automatic resource manager
-        //containers are cleaned up explicitly
-        //automatic resource manager is just an extra thing that can break
-        //(have had problems with it not being cleaned up properly itself)
-        environmentVariables.set("TESTCONTAINERS_RYUK_DISABLED", "true");
-        assertEquals("true", System.getenv("TESTCONTAINERS_RYUK_DISABLED"));
+    public void ignoreOnJdk15() throws SQLException {
+        Assume.assumeFalse("https://github.com/hazelcast/hazelcast-jet/issues/2623",
+                System.getProperty("java.version").startsWith("15"));
     }
 
     @After
