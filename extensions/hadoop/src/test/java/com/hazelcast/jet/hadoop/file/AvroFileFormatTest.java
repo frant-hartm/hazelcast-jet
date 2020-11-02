@@ -18,7 +18,7 @@ package com.hazelcast.jet.hadoop.file;
 
 import com.hazelcast.jet.hadoop.file.generated.SpecificUser;
 import com.hazelcast.jet.hadoop.file.model.User;
-import com.hazelcast.jet.pipeline.file.FileFormat;
+import com.hazelcast.jet.pipeline.file.FileFormats;
 import com.hazelcast.jet.pipeline.file.FileSourceBuilder;
 import com.hazelcast.jet.pipeline.file.FileSources;
 import org.apache.avro.file.DataFileWriter;
@@ -37,7 +37,7 @@ public class AvroFileFormatTest extends BaseFileFormatTest {
         createAvroFile();
 
         FileSourceBuilder<SpecificUser> source = FileSources.files("target/avro/file.avro")
-                                                            .withFormat(FileFormat.avro());
+                                                            .withFormat(FileFormats.avro());
         assertItemsInSource(source,
                 new SpecificUser("Frantisek", 7),
                 new SpecificUser("Ali", 42)
@@ -50,7 +50,7 @@ public class AvroFileFormatTest extends BaseFileFormatTest {
         createAvroFile();
 
         FileSourceBuilder<User> source = FileSources.files("target/avro/file.avro")
-                                                    .withFormat(FileFormat.avro(User.class));
+                                                    .withFormat(FileFormats.avro(User.class));
 
         assertItemsInSource(source,
                 new User("Frantisek", 7),

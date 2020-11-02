@@ -161,6 +161,83 @@ expects `Object[]` as return type.
 
 We need to provide a way to configure each format as such.
 
+= Design
+
+Entry point - `com.hazelcast.jet.pipeline.file.FileSources`. Returns
+`com.hazelcast.jet.pipeline.file.FileSourceBuilder`
+
+There are 2 required parameters - path and format.
+
+Path specifies the file location (accepts globs).
+The format describes the format of the data in the file (text, csv,
+json ..).
+
+The files are either on a local filesystem, hdfs, or on one of
+supported cloud storage systems, implemented using Hadoop
+infrastructure.
+
+User must provide correct module on CP.
+
+Additionally, local files can be read using Hadoop infrastructure by
+setting `useHadoopForLocalFiles` flag on the builder.
+
+It is also possible to pass key/value String pairs as options. These
+are passed to the Hadoop MR job configuration - needed for
+authentication and available to use for any options for the format or
+other needs.
+
+== Local files
+
+Reading from local file system is implemented in
+`com.hazelcast.jet.pipeline.file.impl.LocalFileSourceFactory`.
+The current infrastructure is reused -
+`com.hazelcast.jet.core.processor.SourceProcessors.readFilesP
+(java.lang.String, java.lang.String, boolean,
+ com.hazelcast.function.FunctionEx<? super java.nio.file.Path,?
+extends java.util.stream.Stream<I>>)`
+
+Supporting a file format in LocalFileSourceFactory means implementing a
+`ReadFileFnProvider` interface:
+
+```java
+public interface ReadFileFnProvider {
+
+    <T> FunctionEx<Path, Stream<T>> createReadFileFn(FileFormat<T> format);
+
+    String format();
+}
+```
+
+The `createReadFileFn` creates, for a given file format, a function
+that reads from a Path (a file on a local filesystem) and returns
+a stream of items, which are emitted from the source.
+
+== Cloud
+
+Cloud storage systems are supported via Hadoop. Each storage system is
+supported by a given module, which includes all dependencies.
+The concrete storage is detected from the path prefix by the Hadoop
+infrastructure.
+
+Supporting a file format in HadoopFileSourceFactory means implementing
+`JobConfigurer` interface:
+
+```java
+public interface JobConfigurer {
+
+    <T> void configure(Job job, FileFormat<T> format);
+
+    BiFunctionEx<?, ?, ?> projectionFn();
+}
+```
+
+The `configure` configured the MR job with given `FileFormat`. This
+typically means setting the InputFormat class for the MR job and its
+parameters.
+
+The `projectionFn` function converts `InputFormat`'s key-value result
+to the item emitted from the source.
+
 = Licensing
 
 We had to add couple of aliases for apache 2, BSD, new/revised BSD,

@@ -16,7 +16,7 @@
 
 package com.hazelcast.jet.hadoop.file;
 
-import com.hazelcast.jet.pipeline.file.FileFormat;
+import com.hazelcast.jet.pipeline.file.FileFormats;
 import com.hazelcast.jet.pipeline.file.FileSourceBuilder;
 import com.hazelcast.jet.pipeline.file.FileSources;
 import org.junit.Test;
@@ -28,7 +28,7 @@ public class RawBytesFileFormatTest extends BaseFileFormatTest {
     @Test
     public void testRawFile() {
         FileSourceBuilder<byte[]> source = FileSources.files("src/test/resources/raw.bin")
-                .withFormat(FileFormat.bytes());
+                .withFormat(FileFormats.bytes());
 
         byte[] expectedBytes = "Raw contents of the file.".getBytes(UTF_8);
         assertItemsInSource(source, expectedBytes);

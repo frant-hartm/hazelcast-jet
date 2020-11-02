@@ -20,7 +20,7 @@ import com.hazelcast.jet.pipeline.BatchSource;
 import com.hazelcast.jet.pipeline.file.FileSourceBuilder;
 
 /**
- *
+ * Internal API for factories that build {@link BatchSource} from {@link FileSourceBuilder}
  */
 public interface FileSourceFactory {
 

@@ -58,14 +58,14 @@ import static java.util.Objects.requireNonNull;
 /**
  * Hadoop based implementation for FileSourceFactory
  */
-public class HadoopSourceFactory implements FileSourceFactory {
+public class HadoopFileSourceFactory implements FileSourceFactory {
 
     private final Map<String, JobConfigurer> configs;
 
     /**
      * Creates HadoopSourceFactory
      */
-    public HadoopSourceFactory() {
+    public HadoopFileSourceFactory() {
         configs = new HashMap<>();
 
         configs.put(AvroFileFormat.FORMAT_AVRO, new AvroFormatJobConfigurer());

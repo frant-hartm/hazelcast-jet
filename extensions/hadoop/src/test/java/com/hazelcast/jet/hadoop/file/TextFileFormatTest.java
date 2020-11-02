@@ -16,7 +16,7 @@
 
 package com.hazelcast.jet.hadoop.file;
 
-import com.hazelcast.jet.pipeline.file.FileFormat;
+import com.hazelcast.jet.pipeline.file.FileFormats;
 import com.hazelcast.jet.pipeline.file.FileSourceBuilder;
 import com.hazelcast.jet.pipeline.file.FileSources;
 import org.junit.Test;
@@ -31,7 +31,7 @@ public class TextFileFormatTest extends BaseFileFormatTest {
     @Test
     public void readTextFileAsSingleItem() {
         FileSourceBuilder<String> source = FileSources.files("src/test/resources/file.txt")
-                                                      .withFormat(FileFormat.text());
+                                                      .withFormat(FileFormats.text());
 
         assertItemsInSource(source, "Text contents of\nthe file.\n");
     }
@@ -39,7 +39,7 @@ public class TextFileFormatTest extends BaseFileFormatTest {
     @Test
     public void readTextFileAsLines() {
         FileSourceBuilder<String> source = FileSources.files("src/test/resources/file.txt")
-                                                      .withFormat(FileFormat.lines());
+                                                      .withFormat(FileFormats.lines());
 
         assertItemsInSource(source, "Text contents of", "the file.");
     }
@@ -50,7 +50,7 @@ public class TextFileFormatTest extends BaseFileFormatTest {
         assumeThat(useHadoop).isFalse();
 
         FileSourceBuilder<String> source = FileSources.files("src/test/resources/cp1250.txt")
-                                                      .withFormat(FileFormat.text(Charset.forName("Cp1250")));
+                                                      .withFormat(FileFormats.text(Charset.forName("Cp1250")));
 
         assertItemsInSource(source, "Příliš žluťoučký kůň úpěl ďábelské ódy.");
     }

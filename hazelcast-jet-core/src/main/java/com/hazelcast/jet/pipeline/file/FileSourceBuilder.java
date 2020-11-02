@@ -176,6 +176,7 @@ public class FileSourceBuilder<T> {
         }
         if (useHadoop || hasHadoopPrefix()) {
             ServiceLoader<FileSourceFactory> loader = ServiceLoader.load(FileSourceFactory.class);
+            // Only one implementation is expected to be present on classpath
             for (FileSourceFactory fileSourceFactory : loader) {
                 return fileSourceFactory.create(this);
             }
@@ -186,7 +187,6 @@ public class FileSourceBuilder<T> {
     }
 
     private boolean hasHadoopPrefix() {
-        long count = HADOOP_PREFIXES.stream().filter(path::startsWith).count();
-        return count > 0;
+        return HADOOP_PREFIXES.stream().anyMatch(path::startsWith);
     }
 }

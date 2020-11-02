@@ -18,8 +18,6 @@ package com.hazelcast.jet.pipeline.file;
 
 /**
  * Convenience methods to FileSourceBuilder
- * <p>
- * TODO not sure if we actually need this? Does it provide value?
  */
 public final class FileSources {
 
@@ -34,6 +32,10 @@ public final class FileSources {
      * <p>
      * Returns a {@link FileSourceBuilder} configured with LinesTextFileFormat
      * - each line of the file is emitted from the source as a single String.
+     * <p>
+     * The path can point to a file, a directory or contain a glob
+     * (e.g. {@code "file*"}, capturing {@code file1.txt},
+     * {@code file2.txt}, ...).
      *<pre>{@code
      * Pipeline p = Pipeline.create();
      * p.readFrom(FileSources.files("src/main/java"))
@@ -41,7 +43,8 @@ public final class FileSources {
      *  .filter(log -> log.level().equals("ERROR"))
      *  .writeTo(Sinks.logger());}</pre>
      *
-     * You can override the format by calling {@link FileSourceBuilder#withFormat(FileFormat)} method.
+     * You can override the format by calling
+     * {@link FileSourceBuilder#withFormat(FileFormat)} method.
      * For example:
      * <pre>{@code
      * BatchSource<byte[]> source = FileSources.files("path/to/binary/file")
@@ -54,8 +57,9 @@ public final class FileSources {
      *                                         .build();
      * }</pre>
      *
-     * @param path
-     * @return
+     * @param path the path to the file
+     *
+     * @return FileSourceBuilder, which can be further modified using fluent API
      */
     public static FileSourceBuilder<String> files(String path) {
         return new FileSourceBuilder<>(path)
