@@ -17,6 +17,7 @@
 package com.hazelcast.jet.impl;
 
 import com.hazelcast.client.impl.ClientEngineImpl;
+import com.hazelcast.compute.ComputeEngine;
 import com.hazelcast.config.Config;
 import com.hazelcast.config.ConfigAccessor;
 import com.hazelcast.instance.impl.HazelcastInstanceImpl;
@@ -62,7 +63,7 @@ import static com.hazelcast.spi.properties.ClusterProperty.SHUTDOWNHOOK_POLICY;
 import static java.lang.Boolean.parseBoolean;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
-public class JetService implements ManagedService, MembershipAwareService, LiveOperationsTracker {
+public class JetService implements ManagedService, MembershipAwareService, LiveOperationsTracker, ComputeEngine {
 
     public static final String SERVICE_NAME = "hz:impl:jetService";
     public static final int MAX_PARALLEL_ASYNC_OPS = 1000;
@@ -330,5 +331,10 @@ public class JetService implements ManagedService, MembershipAwareService, LiveO
     @Nullable
     JetSqlCoreBackend getSqlCoreBackend() {
         return sqlCoreBackend;
+    }
+
+    @Override
+    public <T> T getJet() {
+        return (T) jetInstance;
     }
 }

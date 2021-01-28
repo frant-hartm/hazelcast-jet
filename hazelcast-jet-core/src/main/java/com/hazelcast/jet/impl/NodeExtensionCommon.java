@@ -35,11 +35,11 @@ import static com.hazelcast.jet.impl.util.ExceptionUtil.rethrow;
 
 class NodeExtensionCommon {
     private static final String JET_LOGO =
-            "\to   o   o   o---o o---o o     o---o   o   o---o o-o-o        o o---o o-o-o\n" +
-            "\t|   |  / \\     /  |     |     |      / \\  |       |          | |       |\n" +
-            "\to---o o---o   o   o-o   |     o     o---o o---o   |          | o-o     |\n" +
-            "\t|   | |   |  /    |     |     |     |   |     |   |      \\   | |       |\n" +
-            "\to   o o   o o---o o---o o---o o---o o   o o---o   o       o--o o---o   o";
+            "o  o   O  o---o o--o o      o-o   O   o-o  o-O-o     o--o  o      O  o-O-o o--o  o-o  o--o  o   o\n" +
+            "|  |  / \\    /  |    |     /     / \\ |       |       |   | |     / \\   |   |    o   o |   | |\\ /|\n" +
+            "O--O o---o -O-  O-o  |    O     o---o o-o    |       O--o  |    o---o  |   O-o  |   | O-Oo  | O |\n" +
+            "|  | |   | /    |    |     \\    |   |    |   |       |     |    |   |  |   |    o   o |  \\  |   |\n" +
+            "o  o o   oo---o o--o O---o  o-o o   oo--o    o       o     O---oo   o  o   o     o-o  o   o o   o ";
     private static final String COPYRIGHT_LINE = "Copyright (c) 2008-2020, Hazelcast, Inc. All Rights Reserved.";
 
     private final Node node;

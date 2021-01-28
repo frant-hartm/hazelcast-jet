@@ -17,8 +17,11 @@
 package com.hazelcast.jet.impl;
 
 import com.hazelcast.cluster.ClusterState;
+import com.hazelcast.config.ConfigAccessor;
+import com.hazelcast.config.ServiceConfig;
 import com.hazelcast.instance.impl.DefaultNodeExtension;
 import com.hazelcast.instance.impl.Node;
+import com.hazelcast.internal.config.ServicesConfig;
 import com.hazelcast.internal.nio.Packet;
 import com.hazelcast.jet.config.JetConfig;
 import com.hazelcast.spi.impl.NodeEngineImpl.JetPacketConsumer;
@@ -35,7 +38,13 @@ public class JetNodeExtension extends DefaultNodeExtension implements JetPacketC
 
     @Override
     public void beforeStart() {
-        JetConfig config = JetService.findJetServiceConfig(node.getConfig());
+        JetConfig config = new JetConfig();
+        ServicesConfig servicesConfig = ConfigAccessor.getServicesConfig(node.getConfig());
+        servicesConfig.addServiceConfig(new ServiceConfig().setEnabled(false)
+                                                           .setName(JetService.SERVICE_NAME)
+                                                           .setClassName(JetService.class.getName())
+                                                           .setConfigObject(config));
+
         if (config.getInstanceConfig().isLosslessRestartEnabled()) {
             throw new UnsupportedOperationException("Lossless Restart is not available in the open-source version of " +
                     "Hazelcast Jet");
